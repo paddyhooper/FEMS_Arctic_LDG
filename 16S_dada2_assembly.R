@@ -1,5 +1,5 @@
 #Assembly of V4 16S sequence data using dada2 ASV assembly 
-##Author: Paddy Hooper
+#Author: Patrick Hooper
 ##Created: 01.04.22
 
 #Along the way I used saveRDS to save R products, this can save a lot of time in the future as you can just ##Reload previously run command outputs using the script in my GitHub page: "Reloading your DADA2 analyses"
