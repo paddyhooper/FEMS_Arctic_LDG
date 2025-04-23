@@ -1,7 +1,9 @@
 # Arctic cyanobacterial mat community diversity decreases with latitude across the Canadian Arctic
 ---
 Code for the analysis and figures from the manuscript: "Arctic cyanobacterial mat community diversity decreases with latitude across the Canadian Arctic"
+
 Patrick M. Hooper, David Bass, Edward J Feil, Warwick F Vincent, Chris J. Owen, Stephania L Tsola, and Anne D. Jungblut
+
 FEMS Microbiology Ecology, Volume 100, Issue 6, June 2024, fiae067, https://doi.org/10.1093/femsec/fiae067
 
 ---
