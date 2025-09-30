@@ -425,126 +425,11 @@ write.table(ps_meta, file = "ps_metadata_new_trim.txt", sep = "\t", quote=F, col
 
 ###I would recommend looking at your exported files on excel to understand their distribution between different samples###
 
-#9.8. CREATE A PHYLOGENETIC TREE ####
-#I struggled to run this locally, if you have a large ASV dataset (>1000 ASVs), I recommend running it on the command line using the script "DECIPHER_script.R"
-ps_decipher_tree <- readRDS(file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/ps_merged_18s_new_trim_2_4_22")
-
-ps_decipher_tree 
-plot_tree(ps_decipher_tree)
-
-#9.9. PHYLOGENETIC AGGLOMERATION####
-#This step uses the tip_glom feature of phyloseq to cluster ASVs based on their phylogenetic relatedness
-#This also had to be carried out on a server using the script "glom_script.R"
-
-#I tried this at 0.2, 0.4, 0.02, and 0.01 and selected 0.01 glom
-h1 = 0.01
-
-ps_glom <- readRDS(file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/ps_merged_18S_glom_new_trim_0_01_4_4")
-
-ps_glom
-#output:
-#otu_table()   OTU Table:         [ 9393 taxa and 93 samples ]
-#sample_data() Sample Data:       [ 93 samples by 20 sample variables ]
-#tax_table()   Taxonomy Table:    [ 9393 taxa by 8 taxonomic ranks ]
-#phy_tree()    Phylogenetic Tree: [ 9393 tips and 9391 internal nodes ]
-#refseq()      DNAStringSet:      [ 9393 reference sequences ]
-
-#Look at how agglomeration changes the phylogenetic tree
-test_counts = plot_tree(ps_decipher_tree, method = "treeonly", ladderize = "left", title = "18S no agglomeration") + theme(plot.title = element_text(size = 15))
-tipglom_counts_0.01 = plot_tree(ps_glom, method = "treeonly", ladderize = "left", title = "18S Glom 0.01") + theme(plot.title = element_text(size = 15))
-
-grid.arrange(nrow = 1, test_counts, tipglom_counts_0.01)
-
-#9.10. EXPORT YOUR FINAL PHYLOGENETIC AGGLOMERATED DATA TABLE
-#Separate ref seqs
-refseq(ps_glom)
-
-#export an ASV count table
-ps_asv_count_18S <- abundances(ps_glom)
-ps_asv_count_18S <- as.data.frame(ps_asv_count_18S)
-ps_asv_count_18S <- ps_asv_count_18S %>% 
-  rownames_to_column(var = "ASVID")
-write.table(ps_asv_count_18S, file = "FINAL_ps_ASV_count_18S_glom_0_01.txt", sep = "\t", quote=F, col.names=NA)
-
-#export a proportional abundance table of ASVs
-ps_asv_ra_18S <- abundances(ps_glom,"compositional")
-ps_asv_ra_18S <- as.data.frame(ps_asv_ra_18S)
-ps_asv_ra_18S <- ps_asv_ra_18S %>% 
-  rownames_to_column(var = "ASVID")
-write.table(ps_asv_ra_18S, file = "FINAL_ps_ASV_proportional_count_18S_glom_0_01.txt", sep = "\t", quote=F, col.names=NA)
-
-#export a tax table
-ps_tax <- tax_table(ps_glom)
-ps_tax <- as.data.frame(ps_tax)
-ps_tax <- ps_tax %>% 
-  rownames_to_column(var = "ASVID")
-write.table(ps_tax, file = "FINAL_ps_18S_taxa_glom_0_01.txt", sep = "\t", quote=F, col.names=NA)
-
-#export a merged ASV count and taxonomic assignment table
-ASV_TAX_table_18S <- merge(ps_asv_count_18S, ps_tax, by.x = c("ASVID"), by.y = c("ASVID"))
-ASV_TAX_table_18S
-write.table(ASV_TAX_table_18S, "FINAL_merged_asv_tax_table_18S_glom_0_01.txt", sep = "\t", quote=, col.names=NA)
-
-##export a merged relative abundance (proportional) ASV count and taxonomic assignment table
-ASV_TAX_table_18S_ra <- merge(ps_asv_ra_18S, ps_tax, by.x = c("ASVID"), by.y = c("ASVID"))
-ASV_TAX_table_18S_ra
-write.table(ASV_TAX_table_18S_ra, "FINAL_merged_asv_tax_table_18S_glom_0_01_RA.txt", sep = "\t", quote=, col.names=NA)
-
-#export your ASV sequences as a FASTA file
-ASV_seqs <- refseq(ps_glom)
-ASV_seqs #check fasta correct number of sequences 
-write.table(ASV_seqs, file = "FINAL_18S_ASVs_glom_0_01.fasta", sep = "\t", quote=F, col.names=NA)
-
-#export read count
-read_count <- readcount(ps_glom)
-
-#Add the read count to your final phyloseq metadata object
-sample_data(ps_glom)$read_count <- read_count
-sample_data(ps_glom)
-
-#psmelt function allows you to convert phyloseq objects into R dataframes, useful for future work with ggplot
-meta <- sample_data(ps_glom)
-write.table(meta, "FINAL_ps_metadata_18S_glom_0_01.txt", sep = "\t", quote=, col.names=NA)
-
-#Save your final version of your phyloseq object for easy reloading later on
-ps_glom
-saveRDS(ps_glom, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/FINAL_ps_18S")
-
-#Create a histogram of your final ASV and Sample counts
-readsumsdf = data.frame(nreads = sort(taxa_sums(ps_glom), TRUE), sorted = 1:ntaxa(ps_glom), type = "OTUs")
-readsumsdf = rbind(readsumsdf, data.frame(nreads = sort(sample_sums(ps_glom), 
-                                                        TRUE), sorted = 1:nsamples(ps_glom), type = "Samples"))
-title = "Total number of reads"
-p = ggplot(readsumsdf, aes(x = sorted, y = nreads)) + geom_bar(stat = "identity")
-p + ggtitle(title) + scale_y_log10() + facet_wrap(~type, 1, scales = "free")
-
-#Create a plot of the final prevalence of ASVs faceted taxonomically by Division 
-prevdf_18S = apply(X = otu_table(ps_glom),
-                       MARGIN = ifelse(taxa_are_rows(ps_glom), yes = 1, no = 2),
-                       FUN = function(x){sum(x > 0)})
-# Add taxonomy and total read counts to this data.frame
-prevdf_18S = data.frame(Prevalence = prevdf_18S,
-                            TotalAbundance = taxa_sums(ps_glom),
-                            tax_table(ps_glom))
-head(prevdf_18S)
-
-write.table(prevdf_18S, "FINAL_prevalence_table_18S.txt")
-saveRDS(prevdf_18S, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/FINAL_prevdf_18S_glom")
-
-#Are Divisions comprised of mostly low-prevalence features? compute the (1) average (mean) and (2) total (sum) prevalences of the features in each phylum
-plyr::ddply(prevdf_18S, "Division", function(df1){cbind(mean(df1$Prevalence),sum(df1$Prevalence))})
-prevdf1 <- subset(prevdf_18S, Division %in% get_taxa_unique(ps_glom, "Division"))
-ggplot(prevdf1, aes(TotalAbundance, Prevalence / nsamples(ps_glom),color=Division)) +
-  # Include a guess for parameter
-  geom_hline(yintercept = 0.02, alpha = 0.5, linetype = 2) + geom_point(size = 2, alpha = 0.7) +
-  scale_x_log10() +  xlab("Total Abundance") + ylab("Prevalence [Frac. Samples]") +
-  facet_wrap(~Division) + theme(legend.position="none")
-
 #CREATE A METAZOA ONLY PHYLOSEQ OBJECT####
 extractMet = c("Metazoa")
 metazoa = subset_taxa(ps_glom, Division %in% extractMet)
 metazoa #should be 1190 taxa in 93 samples
-saveRDS(metazoa, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/FINAL_ps_metazoa")
+saveRDS(metazoa, file = "~/FINAL_ps_metazoa")
 
 ##REMOVE METAZOA AND EMBRYOPHYTES FOR DOWNSTREAM STATS####
 filterMet = c("Metazoa") #change to your specific Supergroup(s)
@@ -560,44 +445,41 @@ ps # for ease when saving files below:
 
 #EXPORT COUNT, RA COUNT, AND TAXA TABLE FOR DOWNSTREAM STATS WITHOUT METAZOA AND EMBRYOPHYTES
 
-#Separate ref seqs
-refseq(ps)
-
 #export an ASV count table
 ps_asv_count_18S_no_metazoa_plants <- abundances(ps)
 ps_asv_count_18S_no_metazoa_plants <- as.data.frame(ps_asv_count_18S_no_metazoa_plants)
 ps_asv_count_18S_no_metazoa_plants <- ps_asv_count_18S_no_metazoa_plants %>% 
   rownames_to_column(var = "ASVID")
-write.table(ps_asv_count_18S_no_metazoa_plants, file = "FINAL_ps_ASV_count_18S_glom_0_01_no_met_plant.txt", sep = "\t", quote=F, col.names=NA)
+write.table(ps_asv_count_18S_no_metazoa_plants, file = "ps_18S_no_met_plant.txt", sep = "\t", quote=F, col.names=NA)
 
 #export a proportional abundance table of ASVs
 ps_asv_ra_18S_no_metazoa_plants <- abundances(ps,"compositional")
 ps_asv_ra_18S_no_metazoa_plants <- as.data.frame(ps_asv_ra_18S_no_metazoa_plants)
 ps_asv_ra_18S_no_metazoa_plants <- ps_asv_ra_18S_no_metazoa_plants %>% 
   rownames_to_column(var = "ASVID")
-write.table(ps_asv_ra_18S_no_metazoa_plants, file = "FINAL_ps_ASV_proportional_count_18S_glom_0_01_no_met_plant.txt", sep = "\t", quote=F, col.names=NA)
+write.table(ps_asv_ra_18S_no_metazoa_plants, file = "ps_proportional_count_18S_no_met_plant.txt", sep = "\t", quote=F, col.names=NA)
 
 #export a tax table
 ps_tax_no_metazoa_plants <- tax_table(ps)
 ps_tax_no_metazoa_plants <- as.data.frame(ps_tax_no_metazoa_plants)
 ps_tax_no_metazoa_plants <- ps_tax_no_metazoa_plants %>% 
   rownames_to_column(var = "ASVID")
-write.table(ps_tax_no_metazoa_plants, file = "FINAL_ps_18S_taxa_glom_0_01_no_met_plants.txt", sep = "\t", quote=F, col.names=NA)
+write.table(ps_tax_no_metazoa_plants, file = "ps_18S_no_met_plants.txt", sep = "\t", quote=F, col.names=NA)
 
 #export a merged ASV count and taxonomic assignment table
 ASV_TAX_table_18S_no_metazoa_plants <- merge(ps_asv_count_18S_no_metazoa_plants, ps_tax_no_metazoa_plants, by.x = c("ASVID"), by.y = c("ASVID"))
 ASV_TAX_table_18S_no_metazoa_plants
-write.table(ASV_TAX_table_18S_no_metazoa_plants, "FINAL_merged_asv_tax_table_18S_glom_0_01_no_metazoa_plants.txt", sep = "\t", quote=, col.names=NA)
+write.table(ASV_TAX_table_18S_no_metazoa_plants, "merged_asv_tax_table_18S_no_metazoa_plants.txt", sep = "\t", quote=, col.names=NA)
 
 ##export a merged relative abundance (proportional) ASV count and taxonomic assignment table
 ASV_TAX_table_18S_no_metazoa_plants_ra <- merge(ps_asv_ra_18S_no_metazoa_plants, ps_tax_no_metazoa_plants, by.x = c("ASVID"), by.y = c("ASVID"))
 ASV_TAX_table_18S_no_metazoa_plants_ra
-write.table(ASV_TAX_table_18S_no_metazoa_plants_ra, "FINAL_merged_asv_tax_table_18S_glom_0_01_no_metazoa_plants_RA.txt", sep = "\t", quote=, col.names=NA)
+write.table(ASV_TAX_table_18S_no_metazoa_plants_ra, "merged_asv_tax_table_18S_no_metazoa_plants_RA.txt", sep = "\t", quote=, col.names=NA)
 
 #export your ASV sequences as a FASTA file
 ASV_seqs <- refseq(ps)
 ASV_seqs #check fasta correct number of sequences 
-write.table(ASV_seqs, file = "FINAL_18S_ASVs_glom_0_01_no_met_plants.fasta", sep = "\t", quote=F, col.names=NA)
+write.table(ASV_seqs, file = "18S_ASVs_no_met_plants.fasta", sep = "\t", quote=F, col.names=NA)
 
 #export read count
 read_count <- readcount(ps)
@@ -608,40 +490,10 @@ sample_data(ps)
 
 #psmelt function allows you to convert phyloseq objects into R dataframes, useful for future work with ggplot
 meta <- sample_data(ps)
-write.table(meta, "FINAL_ps_metadata_18S_glom_0_01_no_met_plants.txt", sep = "\t", quote=, col.names=NA)
+write.table(meta, "ps_metadata_18S_no_met_plants.txt", sep = "\t", quote=, col.names=NA)
 
 #Save your final version of your phyloseq object for easy reloading later on with no metazoa or plants
 ps
-saveRDS(ps, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/FINAL_ps_18S_no_met_plants")
-
-#Create a histogram of your final ASV and Sample counts
-readsumsdf = data.frame(nreads = sort(taxa_sums(ps), TRUE), sorted = 1:ntaxa(ps), type = "OTUs")
-readsumsdf = rbind(readsumsdf, data.frame(nreads = sort(sample_sums(ps), 
-                                                        TRUE), sorted = 1:nsamples(ps), type = "Samples"))
-title = "Total number of reads"
-p = ggplot(readsumsdf, aes(x = sorted, y = nreads)) + geom_bar(stat = "identity")
-p + ggtitle(title) + scale_y_log10() + facet_wrap(~type, 1, scales = "free")
-
-#Create a plot of the final prevalence of ASVs faceted taxonomically by Division 
-prevdf_18S_no_met_plants = apply(X = otu_table(ps),
-                   MARGIN = ifelse(taxa_are_rows(ps), yes = 1, no = 2),
-                   FUN = function(x){sum(x > 0)})
-# Add taxonomy and total read counts to this data.frame
-prevdf_18S_no_met_plants = data.frame(Prevalence = prevdf_18S_no_met_plants,
-                        TotalAbundance = taxa_sums(ps),
-                        tax_table(ps))
-head(prevdf_18S_no_met_plants)
-
-plyr::ddply(prevdf_18S_no_met_plants, "Division", function(df1){cbind(mean(df1$Prevalence),sum(df1$Prevalence))})
-prevdf1_no_met_plant <- subset(prevdf_18S_no_met_plants, Division %in% get_taxa_unique(ps, "Division"))
-ggplot(prevdf1_no_met_plant, aes(TotalAbundance, Prevalence / nsamples(ps),color=Division)) +
-  # Include a guess for parameter
-  geom_hline(yintercept = 0.02, alpha = 0.5, linetype = 2) + geom_point(size = 2, alpha = 0.7) +
-  scale_x_log10() +  xlab("Total Abundance") + ylab("Prevalence [Frac. Samples]") +
-  facet_wrap(~Division) + theme(legend.position="none")
-
-#Save these final versions of your prevalence data without metazoa and plants
-write.table(prevdf_18S_no_met_plants, "FINAL_prevalence_table_18S_no_metazoa_plants.txt")
-saveRDS(prevdf_18S_no_met_plants, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/FINAL_prevdf_18S_glom_no_met_plants")
+saveRDS(ps, file = "~/FINAL_ps_18S_no_met_plants")
 
 #END OF SCRIPT####
