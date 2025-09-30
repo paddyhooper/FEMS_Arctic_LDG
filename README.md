@@ -17,6 +17,9 @@ Keywords: 16S rRNA, 18S rRNA, aquatic ecosystems, Arctic, microbial mats, protis
 This work was supported by a NERC GW4+ Doctoral Training Partnership studentship to P.H. funded by the Natural Environment Research Council (NERC) [NE/S007504/1] and a United Kingdom & Canada Arctic Partnership Bursary to A.D.J. by the Department of Business, Energy, and Industrial Strategy and UK Science & Innovation Network. We also acknowledge financial support from the Natural Sciences and Engineering Research Council, the Canadian Research Chair in Aquatic Ecosystem Studies, the Network of Centres of Excellence programme ArcticNet, the Canada First Excellence Research Fund programme Sentinel North, and the International Polar Year Programme MERGE. Logistical support was provided by the Polar Continental Shelf Project, Centre for Northern Studies (CEN), Polar Knowledge Canada, and the Canadian High Arctic Research Station.
 
 # Sequence Reads
-Sequencing reads are available from: https://www.ncbi.nlm.nih.gov/bioproject/PRJNA954357/
+Sequencing reads are available from: https://www.ncbi.nlm.nih.gov/bioproject/PRJNA954357/.
+
+# Files for Scripts
+Files required for these scripts are contained in folder: 'data_files'.
 
 ****
