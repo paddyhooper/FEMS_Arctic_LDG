@@ -297,7 +297,7 @@ write.csv(track_16S_2018, file = "~/16S_2018/track_16S_2018.csv")
 #Outside of filtering, there should no step in which a majority of reads are lost.
 #If a majority of reads failed to merge, you may need to revisit the truncLen parameter used in the filtering step and make sure that the truncated reads span your amplicon. #If a majority of reads were removed as chimeric, you may need to revisit the removal of primers, as the ambiguous nucleotides in unremoved primers interfere with chimera identification
 
-#SECTION 6 - Merging Datasets####
+#SECTION 11 - MERGING 2016 AND 2018 DATASETS####
 #IF YOU HAVE MULTIPLE SEQUENCE RUNS THIS IS THE TIME YOU MERGE THEM TOGETHER BEFORE ASSIGNING TAXONOMY, IF YOU'RE JUST WORKING WITH ONE SEQUENCE RUN IGNORE THIS STEP.
 row.names(seqtab_nochim_16S_2016)
 row.names(seqtab_nochim_16S_2018) #Check you've got ALL your samples and no replicate names
@@ -305,9 +305,10 @@ st_16S <- mergeSequenceTables(seqtab_nochim_16S_2016, seqtab_nochim_16S_2018)
 row.names(st_16S)
 ncol(st_16S)
 
-#SECTION 7 - Assign Taxonomy####
-#You need to choose your reference database and have a file in your WD for this step
+#SECTION 12 - TAXONOMIC ASSIGNMENT####
+#You need to choose your reference database and have a file in your WD for this step:
 #SILVA and PR2 datasets available via DADA2 : https://benjjneb.github.io/dada2/training.html
+#This will most likely not run locally.
 merged_taxa_16S <- assignTaxonomy(st_16S, "tax/silva_nr99_v138.1_train_set.fa.gz", multithread = FALSE)
 head(merged_taxa_16S)
 
@@ -343,15 +344,15 @@ cat("Of those,",
     "were exact matches to the expected reference sequences.\n") #this might say 0 due to the exact species assignment
 #These can be pruned in phyloseq later
 
-#SECTION 8. LOAD METADATA FILE ####
+#SECTION 13. LOAD METADATA FILE ####
 metadata_16S <- read.table("canada_metadata_16S.txt", row.names = 1, header = TRUE)
 
 #check that your samples and metadata table match (double check for typos to avoid much frustration down the line...)
 rownames(metadata_16S) 
 rownames(st_16S) #check your mock is still in there
 
-#SECTION 9. LOAD YOUR ASVs INTO PHYLOSEQ####
-#Make a phyloseq object from your sequence table, tax file, and metadata. Phyloseq is a nice package for looking at amplicon data)
+#SECTION 14. LOAD YOUR ASVs INTO PHYLOSEQ####
+#Make a phyloseq object from your sequence table, tax file, and metadata.
 ps_16S <- phyloseq(
   otu_table(st_16S, taxa_are_rows = FALSE),
   sample_data(metadata_16S),
@@ -373,38 +374,6 @@ ps_16S
 #Access this data:
 refseq(ps_16S)
 
-#EXPORT RAW DATA####
-#Export your raw ASV sequences as a FASTA file
-ASV_seqs_16S <- refseq(ps_16S)
-write.table(ASV_seqs_16S, file = "RAW_16S_ASVs.fasta", sep = "\t", quote=F, col.names=NA)
-
-#Export the raw dada2 output as a merged ASV taxonomy table
-#export an ASV count table
-ps_asv_count_16S <- abundances(ps_16S)
-ps_asv_count_16S <- as.data.frame(ps_asv_count_16S)
-ps_asv_count_16S <- ps_asv_count_16S %>% 
-  rownames_to_column(var = "ASVID")
-write.table(ps_asv_count_16S, file = "RAW_ps_ASV_count_16S.txt", sep = "\t", quote=F, col.names=NA)
-
-#export a proportional abundance table of ASVs
-ps_asv_ra_16S <- abundances(ps_16S, "compositional")
-ps_asv_ra_16S <- as.data.frame(ps_asv_ra_16S)
-ps_asv_ra_16S <- ps_asv_ra_16S %>% 
-  rownames_to_column(var = "ASVID")
-write.table(ps_asv_ra_16S, file = "RAW_ps_ASV_proportional_count_16S.txt", sep = "\t", quote=F, col.names=NA)
-
-#export a tax table
-ps_tax <- tax_table(ps_16S)
-ps_tax <- as.data.frame(ps_tax)
-ps_tax <- ps_tax %>% 
-  rownames_to_column(var = "ASVID")
-write.table(ps_tax, file = "RAW_ps_16S_taxa.txt", sep = "\t", quote=F, col.names=NA)
-
-#export a merged ASV count and taxonomic assignment table
-ASV_TAX_table_16S <- merge(ps_asv_count_16S, ps_tax, by.x = c("ASVID"), by.y = c("ASVID"))
-ASV_TAX_table_16S
-write.table(ASV_TAX_table_16S, "RAW_merged_asv_tax_table_16S.txt", sep = "\t", quote=, col.names=NA)
-
 #extract read count data and add to your metadata file
 read_count <- readcount(ps_16S)
 sample_data(ps_16S)$read_count <- read_count
@@ -417,15 +386,10 @@ row.names(ps_meta)
 write.table(ps_meta, file = "RAW_ps_metadata_16S.txt", sep = "\t", quote=F, col.names=NA)
 
 #save raw (unfiltered) versions of your ASV files
-saveRDS(dna_16S, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/RAW_dna_16S")
-saveRDS(ps_16S, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/RAW_ps_16S")
+saveRDS(dna_16S, file = "~/RAW_dna_16S")
+saveRDS(ps_16S, file = "~/RAW_ps_16S")
 
-ps_16S = readRDS(file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/RAW_ps_16S")
-summary_ps_16S <- as.data.frame(sort(sample_sums(ps_16S)))
-summary_ps_16S 
-summary(summary_ps_16S)
-
-#Filtering ASV count data ####
+#SECTION 15: FILTERING ASVs####
 #Investigate the total reads per sample and their distribution using a histogram
 readsumsdf = data.frame(nreads = sort(taxa_sums(ps_16S), TRUE), sorted = 1:ntaxa(ps_16S), 
                         type = "OTUs")
@@ -438,50 +402,7 @@ p + ggtitle(title) + scale_y_log10() + facet_wrap(~type, 1, scales = "free")
 #Create table, number of features for each phyla
 table(tax_table(ps_16S)[, "Phylum"], exclude = NULL)
 
-# Abditibacteriota              Acidobacteriota             Actinobacteriota 
-#42                         1007                         1286 
-#Aenigmarchaeota                Altiarchaeota               Armatimonadota 
-#3                            6                          462 
-#Bacteroidota             Bdellovibrionota                Caldisericota 
-#3195                         1483                           11 
-#Campylobacterota                  Chloroflexi               Cloacimonadota 
-#16                         2118                           17 
-#Crenarchaeota                Cyanobacteria              Deferrisomatota 
-#14                         2279                           11 
-#Deinococcota                 Dependentiae             Desulfobacterota 
-#36                          566                          444 
-#Elusimicrobiota            Entotheonellaeota                Euryarchaeota 
-#165                            1                           17 
-#FCPU426            Fermentibacterota               Fibrobacterota 
-#36                            1                          123 
-#Firestonebacteria                   Firmicutes               Fusobacteriota 
-#5                          656                            7 
-#FW113              Gemmatimonadota                Halobacterota 
-#2                          221                           47 
-#Hydrogenedentes                Iainarchaeota             Latescibacterota 
-#37                            4                           84 
-#LCP-89             Margulisbacteria                       MBNT15 
-#4                           24                           43 
-#Methylomirabilota                Micrarchaeota                  Myxococcota 
-#14                           11                         1425 
-#Nanoarchaeota                        NB1-j                 Nitrospinota 
-#308                           27                            7 
-#Nitrospirota                        NKB15              Patescibacteria 
-#67                            5                         2001 
-#Planctomycetota               Proteobacteria                      RCP2-54 
-#4675                         9947                            9 
-#SAR324 clade(Marine group B)                Spirochaetota                  Sumerlaeota 
-#525                          232                          169 
-#Sva0485                         TA06             Thermoplasmatota 
-#22                            1                           13 
-#Verrucomicrobiota                        WOR-1                        WPS-2 
-#3266                           14                           47 
-#WS1                          WS2                          WS4 
-#20                           14                           46 
-#Zixibacteria                         <NA> 
-#  26                         1267 #
-
-#9.3. PREVALENCE BASED FILTERING####
+#PREVALENCE BASED FILTERING
 #This is an unsupervised approach that relies on data in this experiment and a set parameter for filtering your ASVs, i.e. not based on taxonomic assignment
 
 #Create a dataframe of ASV prevalence
@@ -495,9 +416,6 @@ prevdf_16S = data.frame(Prevalence = prevdf_16S,
                             tax_table(ps_16S))
 head(prevdf_16S)
 
-write.csv(prevdf_16S, "prevalence_table_16S_raw.csv")
-saveRDS(prevdf_16S, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/prevdf_16S_raw")
-
 #Are Divisions comprised of mostly low-prevalence features? compute the (1) average (mean) and (2) total (sum) prevalences of the features in each phylum
 plyr::ddply(prevdf_16S, "Phylum", function(df1){cbind(mean(df1$Prevalence),sum(df1$Prevalence))})
 
@@ -507,8 +425,6 @@ ggplot(prevdf1, aes(TotalAbundance, Prevalence / nsamples(ps_16S),color=Phylum))
   geom_hline(yintercept = 0.02, alpha = 0.5, linetype = 2) + geom_point(size = 2, alpha = 0.7) +
   scale_x_log10() +  xlab("Total Abundance") + ylab("Prevalence [Frac. Samples]") +
   facet_wrap(~Phylum) + theme(legend.position="none")
-
-saveRDS(prevdf1, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/prevdf1_16S_raw")
 
 prev_threshold <- 0.02 * nsamples(ps_16S) 
 keepTaxa <- rownames(prevdf1)[prevdf1$Prevalence >= prev_threshold]
@@ -527,88 +443,36 @@ ggplot(prevdf1, aes(TotalAbundance, Prevalence / nsamples(ps_16S_2_percent),colo
   scale_x_log10() +  xlab("Total Abundance") + ylab("Prevalence [Frac. Samples]") +
   facet_wrap(~Phylum) + theme(legend.position="none")
 
-saveRDS(ps_16S_2_percent, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/ps_16S_2_percent")
-ps_16S_2_percent
-
 #Make ps_16S_2_percent your main phyloseq file for ease
 ps_16S = ps_16S_2_percent
 
-#TAXONOMIC FILTERING####
-# Create table, number of features for each phyla
-table(tax_table(ps_16S)[, "Phylum"], exclude = NULL)
-#Abditibacteriota              Acidobacteriota             Actinobacteriota 
-#16                          567                          775 
-#Aenigmarchaeota                Altiarchaeota               Armatimonadota 
-#2                            2                          228 
-#Bacteroidota             Bdellovibrionota                Caldisericota 
-#1782                          510                            3 
-#Campylobacterota                  Chloroflexi               Cloacimonadota 
-#6                         1217                            6 
-#Crenarchaeota                Cyanobacteria              Deferrisomatota 
-#6                         1386                            5 
-#Deinococcota                 Dependentiae             Desulfobacterota 
-#14                          245                          253 
-#Elusimicrobiota                Euryarchaeota                      FCPU426 
-#45                            9                           15 
-#Fermentibacterota               Fibrobacterota            Firestonebacteria 
-#1                           39                            4 
-#Firmicutes               Fusobacteriota                        FW113 
-#254                            2                            1 
-#Gemmatimonadota                Halobacterota              Hydrogenedentes 
-#143                           30                           14 
-#Iainarchaeota             Latescibacterota                       LCP-89 
-#1                           43                            1 
-#Margulisbacteria                       MBNT15            Methylomirabilota 
-#8                           26                            6 
-#Micrarchaeota                  Myxococcota                Nanoarchaeota 
-#3                          741                           85 
-#NB1-j                 Nitrospinota                 Nitrospirota 
-#20                            3                           34 
-#NKB15              Patescibacteria              Planctomycetota 
-#2                          554                         2777 
-#Proteobacteria                      RCP2-54 SAR324 clade(Marine group B) 
-#4986                            2                          231 
-#Spirochaetota                  Sumerlaeota                      Sva0485 
-#112                           83                           11 
-#TA06             Thermoplasmatota            Verrucomicrobiota 
-#1                            5                         1677 
-#WOR-1                        WPS-2                          WS1 
-#2                           28                            8 
-#WS2                          WS4                 Zixibacteria 
-#4                           17                           10 
-#<NA> 
-#  420 
-
+#TAXONOMIC FILTERING
 #Remove all eukaryotes
 filterKingdoms = c("Eukaryota","NA") #change to your specific Supergroup(s)
 ps_16S = subset_taxa(ps_16S, !Kingdom %in% filterKingdoms)
 table(tax_table(ps_16S)[, "Kingdom"], exclude = NULL)
-ps_16S
-# Archaea Bacteria     <NA> 
-#143    19328       10 
 
 #Remove all NAs at the Phylum level
 ps_16S <- subset_taxa(ps_16S, !is.na(Phylum) & !Phylum %in% c("", "NA"))
-ps_16S
 
-#Check the NAs have been removed and look at remaining groups, remove any with prevalence <3
+#Check the NAs have been removed and look at remaining groups
 table(tax_table(ps_16S)[, "Phylum"], exclude = NULL)
 
 #Define phyla to filter such as anything that appears in a very low percent of all samples or plastid and mito
 filterPhylum = c("Aenigmarchaeota", "Altiarchaeota", "Fermentibacterota","FW113","Fusobacteriota","Iainarchaeota","LCP-89","NKB15","RCP2-54","TA06","WOR-1") #change to your specific Supergroup(s)
 
-# Remove filtered Phylum
+#Remove filtered Phylum
 ps_16S = subset_taxa(ps_16S, !Phylum %in% filterPhylum)
 ps_16S
 
 table(tax_table(ps_16S)[,"Phylum"], exclude = NULL) #check that <3 groups have been removed
 
-#9.5. REMOVE UNWANTED SAMPLES ####
+#SECTION 16: REMOVE UNWANTED SAMPLES####
 #ASV count per sample 
 readcount(ps_16S)
 #This shows that all samples have a good coverage and relatively similar number of reads, therefore none will be pruned
 
-#9.6 FILTER OUT MITOCHONDRIA AND CHLOROPLAST
+#FILTER OUT MITOCHONDRIA AND CHLOROPLAST
 filter_chloro = c("Chloroplast") #change to your specific Supergroup(s)
 
 # Remove chloro
@@ -621,7 +485,7 @@ filter_mito = c("Mitochondria")
 ps_16S = subset_taxa(ps_16S, !Family %in% filter_mito)
 ps_16S
 
-#EXPORT FILTERED DATA####
+#SECTION 17: EXPORT FILTERED DATA####
 #remove your DNA files again (you've already saved your raw data backup above)
 dna_16S <- Biostrings::DNAStringSet(taxa_names(ps_16S))
 names(dna_16S) <- taxa_names(ps_16S)
@@ -631,188 +495,58 @@ ps_16S
 #Access this data:
 refseq(ps_16S)
 
-#9.5. SAVE YOUR FILTERED PHYLOSEQ OBJECT
-saveRDS(dna_16S, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/filt_dna_16S")
-saveRDS(ps_16S, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/filt_ps_16S")
+#SAVE YOUR FILTERED PHYLOSEQ OBJECT
+saveRDS(dna_16S, file = "~/filt_dna_16S")
+saveRDS(ps_16S, file = "~/filt_ps_16S")
 
 #Export your FILTERED ASV sequences as a FASTA file
 ASV_seqs_16S <- refseq(ps_16S)
 write.table(ASV_seqs_16S, file = "FILT_16S_ASVs.fasta", sep = "\t", quote=F, col.names=NA)
 
-#Export the raw dada2 output as a merged ASV taxonomy table
-#export an ASV count table
+#Export an ASV count table
 ps_asv_count_16S <- abundances(ps_16S)
 ps_asv_count_16S <- as.data.frame(ps_asv_count_16S)
 ps_asv_count_16S <- ps_asv_count_16S %>% 
   rownames_to_column(var = "ASVID")
 write.table(ps_asv_count_16S, file = "FILT_ps_ASV_count_16S.txt", sep = "\t", quote=F, col.names=NA)
 
-#export a proportional abundance table of ASVs
+#Export a proportional abundance table of ASVs
 ps_asv_ra_16S <- abundances(ps_16S, "compositional")
 ps_asv_ra_16S <- as.data.frame(ps_asv_ra_16S)
 ps_asv_ra_16S <- ps_asv_ra_16S %>% 
   rownames_to_column(var = "ASVID")
 write.table(ps_asv_ra_16S, file = "FILT_ps_ASV_proportional_count_16S.txt", sep = "\t", quote=F, col.names=NA)
 
-#export a tax table
+#Export a tax table
 ps_tax <- tax_table(ps_16S)
 ps_tax <- as.data.frame(ps_tax)
 ps_tax <- ps_tax %>% 
   rownames_to_column(var = "ASVID")
 write.table(ps_tax, file = "FILT_ps_16S_taxa.txt", sep = "\t", quote=F, col.names=NA)
 
-#export a merged ASV count and taxonomic assignment table
+#Export a merged ASV count and taxonomic assignment table
 ASV_TAX_table_16S <- merge(ps_asv_count_16S, ps_tax, by.x = c("ASVID"), by.y = c("ASVID"))
 ASV_TAX_table_16S
 write.table(ASV_TAX_table_16S, "FILT_merged_asv_tax_table_16S.txt", sep = "\t", quote=, col.names=NA)
 
-#export a merged RA ASV count and taxonomic assingment table
+#Export a merged RA ASV count and taxonomic assingment table
 ASV_TAX_table_16S_ra <- merge(ps_asv_ra_16S, ps_tax, by.x = c("ASVID"), by.y = c("ASVID"))
 ASV_TAX_table_16S_ra
 write.table(ASV_TAX_table_16S_ra, "FILT_merged_asv_tax_table_16S_RA.txt", sep = "\t", quote=, col.names=NA)
 
-#extract read count data and add to your metadata file
+#Extract read count data and add to your metadata file
 read_count <- readcount(ps_16S)
 sample_data(ps_16S)$read_count <- read_count
 sample_data(ps_16S)
 
-#export your final metadata file as a .txt file
+#Export your final metadata file as a .txt file
 ps_meta <- meta(ps_16S)
 row.names(ps_meta)
 #Write it to a .txt file in your wd
 write.table(ps_meta, file = "FILT_ps_metadata_16S.txt", sep = "\t", quote=F, col.names=NA)
 
-#save raw (unfiltered) versions of your ASV files
-saveRDS(dna_16S, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/FILT_dna_16S")
-saveRDS(ps_16S, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/FILT_ps_16S")
-
-ps_16S
-
-#ADD PHYLOGENETIC FILE
-ps.merged = readRDS(file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/ps_merged_16S_2_4_22")
-ps.merged
-
-#output:
-#phyloseq-class experiment-level object
-#otu_table()   OTU Table:         [ 17952 taxa and 97 samples ]
-#sample_data() Sample Data:       [ 97 samples by 20 sample variables ]
-#tax_table()   Taxonomy Table:    [ 17952 taxa by 7 taxonomic ranks ]
-#phy_tree()    Phylogenetic Tree: [ 17952 tips and 17950 internal nodes ]
-#refseq()      DNAStringSet:      [ 17952 reference sequences ]
-
-#9.9. PHYLOGENETIC AGGLOMERATION####
-#This step uses the tip_glom feature of phyloseq to cluster ASVs based on their phylogenetic relatedness
-#This also had to be carried out on a server using the script "glom_script.R"
-
-#I tried this at 0.2, 0.4, 0.02, and 0.01 and selected 0.01 to match 18S
-h1 = 0.01
-
-ps_glom_0.01 <- readRDS(file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/ps_merged_16S_glom_0.01_4_4")
-ps_glom_0.01
-
-#output
-#phyloseq-class experiment-level object
-#otu_table()   OTU Table:         [ 15250 taxa and 97 samples ]
-#sample_data() Sample Data:       [ 97 samples by 20 sample variables ]
-#tax_table()   Taxonomy Table:    [ 15250 taxa by 7 taxonomic ranks ]
-#phy_tree()    Phylogenetic Tree: [ 15250 tips and 15249 internal nodes ]
-#refseq()      DNAStringSet:      [ 15250 reference sequences ]
-#plot_tree(ps_glom_0.02, color="region", label.tips="Genus")
-
-#Look at how agglomeration changes the phylogenetic tree
-multiPlotTitleTextSize = 15
-test_counts = plot_tree(ps.merged,
-                        method = "treeonly",
-                        ladderize = "left",
-                        title = "16S Before Agglomeration") + theme(plot.title = element_text(size = multiPlotTitleTextSize))
-tipglom_counts_0.01 = plot_tree(ps_glom_0.01,
-                               method = "treeonly",
-                               ladderize = "left",
-                               title = "16S_Glom_0.01") + theme(plot.title = element_text(size = multiPlotTitleTextSize))
-grid.arrange(nrow = 1, test_counts, tipglom_counts_0.01)
-
-#START HERE IN MORNING - CHANGE TO 16s
-#9.10. EXPORT YOUR FINAL PHYLOGENETIC AGGLOMERATED DATA TABLE
-#export an ASV count table
-ps_asv_count_16S <- abundances(ps_glom_0.01)
-ps_asv_count_16S <- as.data.frame(ps_asv_count_16S)
-ps_asv_count_16S <- ps_asv_count_16S %>% 
-  rownames_to_column(var = "ASVID")
-write.table(ps_asv_count_16S, file = "FINAL_ps_ASV_count_16S_glom_0_01.txt", sep = "\t", quote=F, col.names=NA)
-
-#export a proportional abundance table of ASVs
-ps_asv_ra_16S <- abundances(ps_glom_0.01,"compositional")
-ps_asv_ra_16S <- as.data.frame(ps_asv_ra_16S)
-ps_asv_ra_16S <- ps_asv_ra_16S %>% 
-  rownames_to_column(var = "ASVID")
-write.table(ps_asv_ra_16S, file = "FINAL_ps_ASV_proportional_count_16S_glom_0_01.txt", sep = "\t", quote=F, col.names=NA)
-
-#export a tax table
-ps_tax_16S <- tax_table(ps_glom_0.01)
-ps_tax_16S <- as.data.frame(ps_tax_16S)
-ps_tax_16S <- ps_tax_16S %>% 
-  rownames_to_column(var = "ASVID")
-write.table(ps_tax_16S, file = "FINAL_ps_16S_taxa_glom_0_01.txt", sep = "\t", quote=F, col.names=NA)
-
-#export a merged ASV count and taxonomic assignment table
-ASV_TAX_table_16S <- merge(ps_asv_count_16S, ps_tax_16S, by.x = c("ASVID"), by.y = c("ASVID"))
-ASV_TAX_table_16S
-write.table(ASV_TAX_table_16S, "FINAL_merged_asv_tax_table_16S_glom_0_01.txt", sep = "\t", quote=, col.names=NA)
-
-#export a merged proportional (relative abundance) ASV count and taxonomic assignment table
-ASV_TAX_table_16S_RA <- merge(ps_asv_ra_16S, ps_tax_16S, by.x = c("ASVID"), by.y = c("ASVID"))
-ASV_TAX_table_16S_RA
-write.table(ASV_TAX_table_16S_RA, "FINAL_merged_asv_tax_table_16S_glom_0_01_RA.txt", sep = "\t", quote=, col.names=NA)
-
-#export your ASV sequences as a FASTA file
-ASV_seqs_16S <- refseq(ps_glom_0.01)
-write.table(ASV_seqs_16S, file = "FINAL_16S_ASVs_glom_0_01.fasta", sep = "\t", quote=F, col.names=NA)
-
-#export read count
-read_count <- readcount(ps_glom_0.01)
-
-#Add this to your final phyloseq metadata object
-sample_data(ps_glom_0.01)$read_count <- read_count
-sample_data(ps_glom_0.01)
-
-#psmelt function allows you to convert phyloseq objects into R dataframes, useful for future work with ggplot
-meta <- sample_data(ps_glom_0.01)
-write.table(meta, "FINAL_ps_metadata_16S_glom_0_01.txt", sep = "\t", quote=, col.names=NA)
-
-#Save your final version of your phyloseq object for easy reloading later on
-ps_glom_0.01
-saveRDS(ps_glom_0.01, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/FINAL_ps_16S")
-
-#Create a histogram of your final ASV and Sample counts
-readsumsdf = data.frame(nreads = sort(taxa_sums(ps_glom_0.01), TRUE), sorted = 1:ntaxa(ps_glom_0.01), 
-                        type = "OTUs")
-readsumsdf = rbind(readsumsdf, data.frame(nreads = sort(sample_sums(ps_glom_0.01), 
-                                                        TRUE), sorted = 1:nsamples(ps_glom_0.01), type = "Samples"))
-title = "Total number of reads"
-p = ggplot(readsumsdf, aes(x = sorted, y = nreads)) + geom_bar(stat = "identity")
-p + ggtitle(title) + scale_y_log10() + facet_wrap(~type, 1, scales = "free")
-
-#Create a plot of the final prevalence of ASVs faceted taxonomically by Division 
-prevdf_16S = apply(X = otu_table(ps_glom_0.01),
-                   MARGIN = ifelse(taxa_are_rows(ps_glom_0.01), yes = 1, no = 2),
-                   FUN = function(x){sum(x > 0)})
-# Add taxonomy and total read counts to this data.frame
-prevdf_16S = data.frame(Prevalence = prevdf_16S,
-                        TotalAbundance = taxa_sums(ps_glom_0.01),
-                        tax_table(ps_glom_0.01))
-head(prevdf_16S)
-
-write.table(prevdf_16S, "FINAL_prevalence_table_16S.txt")
-saveRDS(prevdf_16S, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/FINAL_prevdf_16S")
-
-#Are Divisions comprised of mostly low-prevalence features? compute the (1) average (mean) and (2) total (sum) prevalences of the features in each phylum
-plyr::ddply(prevdf_16S, "Phylum", function(df1){cbind(mean(df1$Prevalence),sum(df1$Prevalence))})
-prevdf1 <- subset(prevdf_16S, Phylum %in% get_taxa_unique(ps_glom_0.01, "Phylum"))
-ggplot(prevdf1, aes(TotalAbundance, Prevalence / nsamples(ps_glom_0.01),color=Phylum)) +
-  # Include a guess for parameter
-  geom_hline(yintercept = 0.02, alpha = 0.5, linetype = 2) + geom_point(size = 2, alpha = 0.7) +
-  scale_x_log10() +  xlab("Total Abundance") + ylab("Prevalence [Frac. Samples]") +
-  facet_wrap(~Phylum) + theme(legend.position="none")
+#This filtered phyloseq object was used in the DECIPHER script in this repository to create the phylogenetic tree. This phylogenetic tree was then used for phylogeny-based ASV agglomeration using the Agglomeration script also in this repository. The final agglomerated phyloseq object was used for all downstream analysis.
 
 #END OF SCRIPT####
+
 
