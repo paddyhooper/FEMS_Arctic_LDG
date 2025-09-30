@@ -20,3 +20,4 @@ saveRDS(ps_merged_16S_glom_0.01, file = "~/canada/18S/ps_merged_16S_glom_0.01")
 
 print("glom 0.01 finished")
 
+#End of Script
