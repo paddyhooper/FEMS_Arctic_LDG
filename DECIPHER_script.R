@@ -1,9 +1,9 @@
-##Script for running DECIPHER in franklin server
+##Script for creating phylogenetic trees in DECIPHER
 #Author: Patrick Hooper
 #Date Created: 23/02/2022
 
 #This script requires installation of the r_env conda environment 
-#This script requires prior installation of these packages through bioconductor
+#This script can be used for both the 16S and 18S rRNA phyloseq packages
 
 #install these on conda
 #   conda install -c bioconda r-phangorn 
@@ -15,10 +15,10 @@ library(phyloseq); packageVersion("phyloseq")
 library(DECIPHER); packageVersion("DECIPHER")
 library(phangorn); packageVersion("phangorn")
 
-#IMPORTANT: You will need to copy your phyloseq RDS object (filt_18S_ps) to the server and this script
+#IMPORTANT: You will need to direct the script to your desired phyloseq object
 
 print("ready to begin!")
-#step 1 - load the merged sequence table from local file
+#step 1
 ps <- readRDS(file = "~/filt_ps_18S")
 ps
 
@@ -62,8 +62,6 @@ print("tree added to phyloseq object")
 saveRDS(ps.merged_test, "~/ps.merged")
 
 print("final phyloseq object saved")
-
-print("Fin. :)")
 
 
 
