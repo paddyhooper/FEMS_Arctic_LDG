@@ -2,11 +2,7 @@
 #Author: Patrick Hooper
 ##Created: 01.04.22
 
-#Along the way I used saveRDS to save R products, this can save a lot of time in the future as you can just ##Reload previously run command outputs using the script in my GitHub page: "Reloading your DADA2 analyses"
-
-#OPTIONAL: Add the MOTHUR SOP mock community to your 16S reads to test the accuracy of your assignment
-#Available: https://benjjneb.github.io/dada2/tutorial.html, section 'Getting Ready' from hyper link 'example data'
-#Copy across the F1 and R1 mock community '.fa' files and the reference file 'HMP_Mock.v35.fasta' to the folder containing your sequencing files
+#OPTIONAL: Add the MOTHUR SOP mock community to your 16S reads to test the accuracy of your assignment: https://benjjneb.github.io/dada2/tutorial.html, section 'Getting Ready' from hyper link 'example data'
 
 #INSTALLATION####
 install.packages("devtools")
@@ -32,15 +28,12 @@ library(phangorn); packageVersion("phangorn")
 library(gridExtra);packageVersion("gridExtra")
 theme_set(theme_minimal()) # set ggplot2 theme to minimal
 
-#SET YOUR WORKING DIRECTORY
-setwd("C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2")
-
 #YOU'RE READY TO BEGIN WITH DADA2!
 #My sequencing files are from two separate sequencing runs, DADA2 requires you to assemble your two ASV tables separately and merge them after assembly
 #I have two sequencing runs from 2016 and 2018, i'll start with the 2016 sequences
 
-#PART 1: IDENTIFY PATH TO YOUR SEQUENCING FILES
-path <- "C:/Users/pmh36/OneDrive - Natural History Museum/Data/Canada_Datasets/Qiime_16S_2016/2016_16S_Sequences/"
+#IDENTIFY PATH TO YOUR SEQUENCING FILES
+path <- "~/2016_16S_Sequences/"
 list.files(path) # check your files are all present
 
 # Forward and reverse fastq filenames have format: SAMPLENAME_R1_001.fastq and SAMPLENAME_R2_001.fastq
@@ -50,10 +43,7 @@ fnRs_16S_2016 <- sort(list.files(path, pattern = "_R2_001.fastq", full.names = T
 sample.names <- sapply(strsplit(basename(fnFs_16S_2016), "_"), `[`, 1)
 sample.names # check you've got all your samples (and your mock community if using)!
 
-saveRDS(fnFs_16S_2016, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/fnFs_16S_2016")
-saveRDS(fnRs_16S_2016, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/fnRs_16S_2016")
-
-#SECTION 1:
+#SECTION 1. READ QUALITY####
 #Inspect read quality profiles for FWD reads for first 4 sequences
 FWD_Quality_Profile <- plotQualityProfile(fnFs_16S_2016[1:4])
 #Inspect read quality profiles for REV reads for first 4 sequences
@@ -61,16 +51,16 @@ REV_Quality_Profile <- plotQualityProfile(fnRs_16S_2016[1:4])
 FWD_Quality_Profile
 REV_Quality_Profile
 
-saveRDS(FWD_Quality_Profile, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/FWD_Quality_Profile")
-saveRDS(REV_Quality_Profile, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/REV_Quality_Profile")
+saveRDS(FWD_Quality_Profile, file = "~16S_2016/FWD_Quality_Profile")
+saveRDS(REV_Quality_Profile, file = "~16S_2016/REV_Quality_Profile")
 
 #Grey scale heat map is the frequency of each quality score at each base position
 #Mean quality score = green line
 #Quartiles of quality score = orange line
 #Red line = scaled proportion of reads extend to at least that position, not useful for illumina as all reads same length
 
-#SECTION 2: Filter and Trim
-# Place filtered files in filtered/ subdirectory
+#SECTION 2: FILTER AND TRIM####
+#Place filtered files in filtered/ subdirectory
 filtFs_16S_2016 <-
   file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
 filtRs_16S_2016 <-
@@ -95,31 +85,21 @@ out_16S_2016 <- filterAndTrim(
 ) # On Windows set multithread = FALSE
 out_16S_2016
 
-saveRDS(out_16S_2016, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/out_16S_2016")
-
-#SECTION 3: Learn the error rates
+#SECTION 3: LEARN ERROR RATES####
 errF_16S_2016 <- learnErrors(filtFs_16S_2016, multithread = TRUE)
 errR_16S_2016 <- learnErrors(filtRs_16S_2016, multithread = TRUE)
 
-saveRDS(errF_16S_2016, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/errF_16S_2016")
-saveRDS(errR_16S_2016, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/errR_16S_2016")
 #The error rates for each possible nucleotide transition are shown. Points = error rates for each quality score, black line = estimated error rates from the machine-learning algorithm. Red lines shows expected error rate under nominal Q-score. If points fit well to the black line and error rate drops with increased quality score you can assume a good error rate.
 Plot_Error_FWD <- plotErrors(errF_16S_2016, nominalQ = TRUE)#FWD read errors
 Plot_Error_REV <- plotErrors(errR_16S_2016, nominalQ = TRUE) #REV read errors
 Plot_Error_FWD
 Plot_Error_REV
 
-saveRDS(Plot_Error_FWD, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/Plot_Error_FWD")
-saveRDS(Plot_Error_REV, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/Plot_Error_REV")
-
-#SECTION 4: Sample inference
+#SECTION 4: SAMPLE INFERENC####
 #Apply the core sample inference algorithm to the filtered and trimmed sequence data
 #Info: https://www.nature.com/articles/nmeth.3869#methods
 dadaFs_16S_2016 <- dada(filtFs_16S_2016, err = errF_16S_2016, multithread = FALSE)
 dadaRs_16S_2016 <- dada(filtRs_16S_2016, err = errR_16S_2016, multithread = FALSE)
-
-saveRDS(dadaFs_16S_2016, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/dadaFs_16S_2016")
-saveRDS(dadaRs_16S_2016, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/dadaRs_16S_2016")
 
 #Inspect the first line
 dadaFs_16S_2016[[1]]
@@ -130,12 +110,10 @@ mergers_16S_2016 <- mergePairs(dadaFs_16S_2016, filtFs_16S_2016, dadaRs_16S_2016
 # Inspect the merger data.frame from the first sample
 head(mergers_16S_2016[[1]])
 
-saveRDS(mergers_16S_2016, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/mergers_16S_2016")
-
 #CONSTRUCT SEQUENCE TABLE
 seqtab_16S_2016 <- makeSequenceTable(mergers_16S_2016)
 dim(seqtab_16S_2016)
-saveRDS(seqtab_16S_2016, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/seqtab_16S_2016")
+saveRDS(seqtab_16S_2016, file = "~/16S_2016/seqtab_16S_2016")
 
 # Inspect distribution of sequence lengths
 table(nchar(getSequences(seqtab_16S_2016)))
@@ -144,25 +122,23 @@ table(nchar(getSequences(seqtab_16S_2016)))
 seqtab_16S_2016_trim <- seqtab_16S_2016[,nchar(colnames(seqtab_16S_2016)) %in% seq(250,256)]
 table(nchar(getSequences(seqtab_16S_2016_trim)))
 
-saveRDS(seqtab_16S_2016_trim, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/seqtab_16S_2016_filtered")
-
 #REMOVE CHIMERAS
 seqtab_nochim_16S_2016 <- removeBimeraDenovo(seqtab_16S_2016_trim, method = "consensus", multithread = FALSE, verbose = TRUE)
 dim(seqtab_nochim_16S_2016)
 
-saveRDS(seqtab_nochim_16S_2016, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/seqtab_nochim_16S_2016")
+saveRDS(seqtab_nochim_16S_2016, file = "~/16S_2016/seqtab_nochim_16S_2016")
 
 # Inspect distribution of sequence lengths
 seq_length_nochim_16S_2016 <- table(nchar(getSequences(seqtab_nochim_16S_2016)))
 seq_length_nochim_16S_2016
 
-write.csv(seq_length_nochim_16S_2016, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/seq_length_distribution")
+write.csv(seq_length_nochim_16S_2016, file = "~/16S_2016/seq_length_distribution")
 
 ncol(seqtab_16S_2016)
 ncol(seqtab_nochim_16S_2016)
 sum(seqtab_nochim_16S_2016) / sum(seqtab_16S_2016) * 100 # % of non-chimeras
 
-#SECTION 5: Track reads through the pipeline
+#SECTION 5: TRACK READS THROUGH PIPELINE####
 getN <- function(x)
   sum(getUniques(x))
 getN
@@ -187,27 +163,24 @@ colnames(track_16S_2016) <-
 rownames(track_16S_2016) <- sample.names
 print(track_16S_2016)
 
-write.table(track_16S_2016, "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/track_16S_2016.txt")
-saveRDS(track_16S_2016, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/track_16S_2016")
+write.table(track_16S_2016, "~/16S_2016/track_16S_2016.txt")
 
 #Outside of filtering, there should no step in which a majority of reads are lost
 #If a majority of reads failed to merge, you may need to revisit the truncLen parameter used in the filtering step and make sure that the truncated reads span your amplicon. #If a majority of reads were removed as chimeric, you may need to revisit the removal of primers, as the ambiguous nucleotides in unremoved primers interfere with chimera identification
 
-#OPTIONAL PART 2: IDENTIFY PATH TO YOUR SECOND FOLDER OF SEQUENCING FILES
-path <- "C:/Users/pmh36/OneDrive - Natural History Museum/Data/Canada_Datasets/Qiime_16S_2018/2018_16S_Sequences/"
+#IDENTIFY PATH TO YOUR SECOND FOLDER OF SEQUENCING FILES####
+path <- "~/2018_16S_Sequences/"
 list.files(path)
 
 # Forward and reverse fastq filenames have format: SAMPLENAME_R1_001.fastq and SAMPLENAME_R2_001.fastq
 fnFs_16S_2018 <- sort(list.files(path, pattern = "_R1_001.fastq", full.names = TRUE))
 fnRs_16S_2018 <- sort(list.files(path, pattern = "_R2_001.fastq", full.names = TRUE))
 
-saveRDS(fnFs_16S_2018, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/fnFs_16S_2018")
-saveRDS(fnRs_16S_2018, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/fnRs_16S_2018")
 # Extract sample names, assuming filenames have format: SAMPLENAME_XXX.fastq
 sample.names_16S_2018 <- sapply(strsplit(basename(fnFs_16S_2018), "_"), `[`, 1)
 sample.names_16S_2018
 
-#SECTION 1: Inspect read quality profiles for FWD reads for first 4 sequences
+#SECTION 6: INSPECT READ QUALITY - 2018 DATA####
 FWD_Quality_Profile_2018 <- plotQualityProfile(fnFs_16S_2018[1:4])
 #Inspect read quality profiles for REV reads for first 4 sequences
 REV_Quality_Profile_2018 <- plotQualityProfile(fnRs_16S_2018[1:4])
@@ -215,15 +188,12 @@ REV_Quality_Profile_2018 <- plotQualityProfile(fnRs_16S_2018[1:4])
 FWD_Quality_Profile_2018
 REV_Quality_Profile_2018
 
-saveRDS(FWD_Quality_Profile_2018, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/FWD_Quality_Profile")
-saveRDS(REV_Quality_Profile_2018, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/REV_Quality_Profile")
-
 #Grey scale heat map is the frequency of each quality score at each base position
 #Mean quality score = green line
 #Quartiles of quality score = orange line
 #Red line = scaled proportion of reads extend to at least that posotion, not useful for illumina as all reads same length
 
-#SECTION 2: Filter and Trim
+#SECTION 7: FILTER AND TRIM####
 # Place filtered files in filtered/ subdirectory
 filtFs_16S_2018 <- file.path(path, "filtered", paste0(sample.names_16S_2018, "_F_filt.fastq.gz"))
 filtRs_16S_2018 < file.path(path, "filtered", paste0(sample.names_16S_2018, "_R_filt.fastq.gz"))
@@ -248,48 +218,31 @@ out_16S_2018 <- filterAndTrim(
 ) # On Windows set multithread=FALSE
 out_16S_2018
 
-saveRDS(out_16S_2018, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/out_16S_2018")
-
-
-#SECTION 3: Learn the error rates
+#SECTION 8: LEARN ERROR RATES####
 errF_16S_2018 <- learnErrors(filtFs_16S_2018, multithread = TRUE)
 errR_16S_2018 <- learnErrors(filtRs_16S_2018, multithread = TRUE)
 
-saveRDS(errF_16S_2018, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/errF_16S_2018")
-saveRDS(errR_16S_2018, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/errR_16S_2018")
 #The error rates for each possible nucleotide transition are shown. Points = error rates for each quality score, black line = estimated error rates from the machine-learning algorithm. Red lines shows expected error rate under nominal Q-score. If points fit well to the black line and error rate drops with increased quality score you can assume a good error rate.
 Plot_Error_FWD_2018 <- plotErrors(errF_16S_2018, nominalQ = TRUE)
 Plot_Error_REV_2018 <- plotErrors(errR_16S_2018, nominalQ = TRUE)
 Plot_Error_FWD_2018
 Plot_Error_REV_2018
 
-saveRDS(Plot_Error_FWD_2018, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/Plot_Error_FWD_2018")
-saveRDS(Plot_Error_REV_2018, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/Plot_Error_REV_2018")
-
-#SECTION 4: Sample inference
-#Apply the core sample inference algorithm to the filtered and trimmed sequence data
-#Info: https://www.nature.com/articles/nmeth.3869#methods
-
+#SECTION 9: SAMPLE INFERENCE####
 dadaFs_16S_2018 <- dada(filtFs_16S_2018, err = errF_16S_2018, multithread = FALSE)
 dadaRs_16S_2018 <- dada(filtRs_16S_2018, err = errR_16S_2018, multithread = FALSE)
 dadaFs_16S_2018[[1]]
 dadaRs_16S_2018[[1]]
-
-saveRDS(dadaFs_16S_2018, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/dadaFs_16S_2018")
-saveRDS(dadaRs_16S_2018, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/dadaRs_16S_2018")
 
 mergers_16S_2018 <- mergePairs(dadaFs_16S_2018, filtFs_16S_2018, dadaRs_16S_2018, filtRs_16S_2018, verbose = TRUE)
 
 # Inspect the merger data.frame from the first sample
 head(mergers_16S_2018[[1]])
 
-saveRDS(mergers_16S_2018, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/mergers_16S_2018")
-
-
 #CONSTRUCT SEQUENCE TABLE
 seqtab_16S_2018 <- makeSequenceTable(mergers_16S_2018)
 dim(seqtab_16S_2018)
-saveRDS(seqtab_16S_2018, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/seqtab_16S_2018")
+saveRDS(seqtab_16S_2018, file = "~/16S_2018/seqtab_16S_2018")
 
 #Inspect distribution of sequence lengths
 table(nchar(getSequences(seqtab_16S_2018)))
@@ -298,19 +251,16 @@ table(nchar(getSequences(seqtab_16S_2018)))
 seqtab_16S_2018_trim <- seqtab_16S_2018[,nchar(colnames(seqtab_16S_2018)) %in% seq(250,256)]
 table(nchar(getSequences(seqtab_16S_2018_trim)))
 
-saveRDS(seqtab_16S_2018_trim, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/seqtab_16S_2018_filtered")
-seqtab_16S_2018_trim = readRDS(file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/seqtab_16S_2018_filtered")
-
 #REMOVE CHIMERAS
 seqtab_nochim_16S_2018 <- removeBimeraDenovo(seqtab_16S_2018_trim, method = "consensus", multithread = FALSE, verbose = TRUE)
 
-saveRDS(seqtab_nochim_16S_2018, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/seqtab_nochim_16S_2018")
+saveRDS(seqtab_nochim_16S_2018, file = "~/16S_2018/seqtab_nochim_16S_2018")
 
 # Inspect distribution of sequence lengths
 seq_length_nochim_16S_2018 <- table(nchar(getSequences(seqtab_nochim_16S_2018)))
 seq_length_nochim_16S_2018
 
-write.csv(seq_length_nochim_16S_2018, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2016/seq_nochim_length_distribution")
+write.csv(seq_length_nochim_16S_2018, file = "~/16S_2018/seq_nochim_length_distribution")
 
 dim(seqtab_16S_2018)
 ncol(seqtab_16S_2018_trim)
@@ -318,7 +268,7 @@ ncol(seqtab_nochim_16S_2018)
 dim(seqtab_nochim_16S_2018)
 sum(seqtab_nochim_16S_2018) / sum(seqtab_16S_2018_trim)
 
-#SECTION 5: Track reads through the pipeline
+#SECTION 10: TRACK READS THROUGH PIPELINE####
 getN <- function(x)
   sum(getUniques(x))
 getN
@@ -342,47 +292,40 @@ colnames(track_16S_2018) <-
 rownames(track_16S_2018) <- sample.names_16S_2018
 rownames(track_16S_2018)
 print(track_16S_2018)
-write.csv(track_16S_2018, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/16S_2018/track_16S_2018.csv")
+write.csv(track_16S_2018, file = "~/16S_2018/track_16S_2018.csv")
 
 #Outside of filtering, there should no step in which a majority of reads are lost.
 #If a majority of reads failed to merge, you may need to revisit the truncLen parameter used in the filtering step and make sure that the truncated reads span your amplicon. #If a majority of reads were removed as chimeric, you may need to revisit the removal of primers, as the ambiguous nucleotides in unremoved primers interfere with chimera identification
 
-
-#SECTION 6 - BRING IT ALL TOGETHER:
-#IF YOU HAVE MULTIPLE SEQUENCE RUNS THIS IS THE TIME YOU MERGE THEM TOGETHER BEFORE ASSIGNING TAXONOMY, IF YOU'RE JUST WORKING WITH ONE SEQUENCE RUN IGNORE THIS STEP
+#SECTION 6 - Merging Datasets####
+#IF YOU HAVE MULTIPLE SEQUENCE RUNS THIS IS THE TIME YOU MERGE THEM TOGETHER BEFORE ASSIGNING TAXONOMY, IF YOU'RE JUST WORKING WITH ONE SEQUENCE RUN IGNORE THIS STEP.
 row.names(seqtab_nochim_16S_2016)
 row.names(seqtab_nochim_16S_2018) #Check you've got ALL your samples and no replicate names
 st_16S <- mergeSequenceTables(seqtab_nochim_16S_2016, seqtab_nochim_16S_2018)
 row.names(st_16S)
 ncol(st_16S)
 
-saveRDS(st_16S, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/st_16S")
-
-#SECTION 7 - Assign Taxonomy:
+#SECTION 7 - Assign Taxonomy####
 #You need to choose your reference database and have a file in your WD for this step
 #SILVA and PR2 datasets available via DADA2 : https://benjjneb.github.io/dada2/training.html
 merged_taxa_16S <- assignTaxonomy(st_16S, "tax/silva_nr99_v138.1_train_set.fa.gz", multithread = FALSE)
 head(merged_taxa_16S)
 
-saveRDS(merged_taxa_16S, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/merged_16S_taxa")
+saveRDS(merged_taxa_16S, file = "~/merged_16S_taxa")
 
 #Optional: Exact species assignment
 #This step adds exact species annotation to the fasta file
-#Recent analysis suggest that exact 100% identity is the only appropriate way to assign species to 16S gene fragments, species-assignment training fastas are available for the SILVA 16S database
+#Recent analysis suggest that exact 100% identity is the only appropriate way to assign species to 16S gene fragments, species-assignment training fastas are available for the SILVA 16S database.
 #Info: https://academic.oup.com/bioinformatics/article/34/14/2371/4913809?login=true
 
 merged_taxa_16S <- addSpecies(merged_taxa_16S, "tax/silva_species_assignment_v138.1.fa.gz")
-saveRDS(merged_taxa, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/merged_16S_taxa_species")
-
-# I did this on a server as it was too large a file to process locally
-merged_taxa_species <- readRDS(file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/merged_taxa_16S_species")
-merged_taxa_species
 
 merged_taxa.print <-  merged_taxa_species #removing sequence rownames for display only
 rownames(merged_taxa.print) <- NULL
 head(merged_taxa.print)
 write.table(merged_taxa.print, "merged_taxa_species_print_TEST.txt")
-#Test your mock community
+
+#Test your mock community (Optional)####
 unqs.mock <- st_16S["Mock", ]
 unqs.mock <-
   sort(unqs.mock[unqs.mock > 0], decreasing = TRUE) # Drop ASVs absent in the Mock
@@ -400,14 +343,14 @@ cat("Of those,",
     "were exact matches to the expected reference sequences.\n") #this might say 0 due to the exact species assignment
 #These can be pruned in phyloseq later
 
-#9.1. LOAD METADATA FILE ####
+#SECTION 8. LOAD METADATA FILE ####
 metadata_16S <- read.table("canada_metadata_16S.txt", row.names = 1, header = TRUE)
 
 #check that your samples and metadata table match (double check for typos to avoid much frustration down the line...)
 rownames(metadata_16S) 
 rownames(st_16S) #check your mock is still in there
 
-#9.1. LOAD YOUR ASVs INTO PHYLOSEQ####
+#SECTION 9. LOAD YOUR ASVs INTO PHYLOSEQ####
 #Make a phyloseq object from your sequence table, tax file, and metadata. Phyloseq is a nice package for looking at amplicon data)
 ps_16S <- phyloseq(
   otu_table(st_16S, taxa_are_rows = FALSE),
@@ -872,3 +815,4 @@ ggplot(prevdf1, aes(TotalAbundance, Prevalence / nsamples(ps_glom_0.01),color=Ph
   facet_wrap(~Phylum) + theme(legend.position="none")
 
 #END OF SCRIPT####
+
