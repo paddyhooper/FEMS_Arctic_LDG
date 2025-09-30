@@ -1,9 +1,6 @@
-#Assembly of V9 18S sequence data using dada2 ASV assembly 
-##Author: Patrick M. Hooper
-##Github:https://github.com/paddyhooper/dada2
-##Created: 01.04.22
-
-#Along the way I used saveRDS to save R products, this can save a lot of time in the future as you can just ##Reload previously run command outputs using the script in my GitHub page: "Reloading your DADA2 analyses"
+#Assembly of V9 18S sequence data using dada2
+#Author: Patrick M. Hooper
+#Created: 01.04.22
 
 #INSTALLATION####
 install.packages("devtools")
@@ -29,15 +26,12 @@ library(phangorn); packageVersion("phangorn")
 library(gridExtra);packageVersion("gridExtra")
 theme_set(theme_minimal()) # set ggplot2 theme to minimal
 
-#SET YOUR WORKING DIRECTORY
-setwd("C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2")
-
 ##YOU'RE READY TO BEGIN WITH DADA2
 #My sequencing files are from two separate sequencing runs, DADA2 requires you to assemble sequencing runs separately and merge them after assembly
 #I have two sequencing runs from 2016 and 2018, I started with the 2016 sequences
 
 #1.1. IDENTIFY PATH TO YOUR 18S FASTA SEQUENCING FILES####
-path <- "C:/Users/pmh36/Documents/2016_18S_Files"
+path <- "~/2016_18S_Files"
 list.files(path) # check your files are all present
 
 #Forward and reverse fastq file names have format: SAMPLENAME_R1_001.fastq and SAMPLENAME_R2_001.fastq
@@ -61,18 +55,12 @@ REV_Quality_Profile_2016 <- plotQualityProfile(fnRs_18S_2016[1:4])
 FWD_Quality_Profile_2016
 REV_Quality_Profile_2016
 
-saveRDS(FWD_Quality_Profile_2016, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/18S_2016/FWD_Quality_Profile_2016")
-saveRDS(REV_Quality_Profile_2016 , file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/18S_2016/REV_Quality_Profile_2016")
-
 #2.1. FILTER AND TRIM####
 # Place filtered files in 'filtered/' subdirectory
 filtFs_18S_2016 <- file.path(path, "filtered", paste0(sample.names_18S_2016, "_F_filt.fastq.gz"))
 filtRs_18S_2016 <- file.path(path, "filtered", paste0(sample.names_18S_2016, "_R_filt.fastq.gz"))
 names(filtFs_18S_2016) <- sample.names_18S_2016
 names(filtRs_18S_2016) <- sample.names_18S_2016
-
-saveRDS(filtFs_18S_2016, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/18S_2016/filtFs_18S_2016")
-saveRDS(filtRs_18S_2016, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/18S_2016/filtRs_18S_2016")
 
 out_18S_2016 <- filterAndTrim(
   fnFs_18S_2016,
