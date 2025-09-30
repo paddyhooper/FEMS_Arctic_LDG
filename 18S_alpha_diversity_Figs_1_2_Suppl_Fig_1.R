@@ -1,7 +1,6 @@
 #Alpha diversity analysis of V9 18S reads
 #Author: Patrick M. Hooper
 #Date Created: 16/08/22
-#Date Modified: 06/09/22
 
 #1. LOAD PACKAGES####
 library(tidyverse); packageVersion("tidyverse")
@@ -37,17 +36,14 @@ show_col(region_palette)
 
 #For scaled data I will use a two tone color palette, designed to be accessible for most eyesights and available for integration with ggplot2 from my color palette above
 
-#3. Set working directory####
-setwd("C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS")
-
 #4. Load metadata table####
 #This metadata table includes the final version sample names####
 #This metadata contains information on all samples except the surplus KJ17bii
-meta_18S <- read.table("C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/GLOM_V9_18S_METADATA_FORMATTED_UPDATE_17_8_22.txt")
+meta_18S <- read.table("~/GLOM_V9_18S_METADATA_FORMATTED_UPDATE_17_8_22.txt")
 
 #5. Load phyloseq objects####
 #4. LOAD YOUR FINAL 18S PHYLOSEQ TABLE WITHOUT METAZOA OR PLANTS####
-ps_18S <- readRDS(file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/FINAL_ps_18S_no_met_plants")
+ps_18S <- readRDS(file = "~/ps_18S_no_met_plants")
 ps_18S
 
 #Remove sample KJ17bii as we have four replicates for this sample
@@ -68,54 +64,13 @@ sample_data(ps_18S) <- meta_18S
 
 ps_18S #this should now have 8179 taxa, 92 samples, and 25 sample variables
 
-
 #Summarise sample depth in your phyloseq object across each sample
 summary_18S <- as.data.frame(sort(sample_sums(ps_18S)))
 summary_18S
 summary(summary_18S)
 
-#> summary(summary_18S)
-#sort(sample_sums(ps_18S))
-#Min.   : 5842            
-#1st Qu.:19092            
-#Median :26401            
-#Mean   :29450            
-#3rd Qu.:38102            
-#Max.   :68364  
-
-#Total ASV sequences
-sum(summary_18S)
-#2,709,404
-
-#It would also be useful to know how these samples distribute across the different samples!
-#Let's quickly make a histogram of the sample count across each sample in our dataset
-hist(sample_sums(ps_18S), main="Histogram: Read Counts", xlab="Total Reads", las=1, breaks=12)
-
-
-#We are now ready to start our analysis using this phyloseq object
-
 #8. ALPHA DIVERSITY ANALYSIS of 18S ####
-#Plotting richness and diversity####
-#McMurdie: I know it is tempting to trim noise right away, but many richness estimates are modeled on singletons and doubletons in the abundance data. You need to leave them in the dataset if you want a meaningful estimate.
-#Source: https://joey711.github.io/phyloseq/plot_richness-examples.html
-
-#However, DADA2 removes singletons as part of ASV assembly so these can't be included
-#Source: https://github.com/benjjneb/dada2/issues/320
-
-#As such, Ben recommends to NOT use richness estimators on ASVs.. https://github.com/benjjneb/dada2/issues/317
-#An alternative would be to use Amy Willis' breakaway package: https://adw96.github.io/breakaway/articles/breakaway.html 
-
-#For now I am going to calculate in phyloseq and come back to this later using the ACE index. This index a nonparametric method for estimating the number of species using sample coverage,which is defined as the sum of the probabilities of the observed species. The ACE method divides observed frequencies into abundant and rare groups. The abundant species are those with more than 10 individuals in the sample, and the rare species are those with fewer than 10 individuals. Only the presence or absence information of abundant species is considered in the ACE method because they would be discovered anyway. Therefore, the exact frequencies for the abundant species are not required in the ACE method. On the other hand, the exact frequencies for the rare species are required because the estimation of the number of missing species is based entirely on these rare species. I will use this over Chao which only uses singletons and doubletons and therefore would be less accurate for dada2 data. 
-
-#The uses of Shannon-Weaver and Simpson diversity indices have been recommended to robustly measure microbial diversity, we shall use both:
-#Shannon-Weaver = Estimator of species richness and species evenness: more weight on species richness
-#Simpson = Estimator of species richness and species evenness: more weight on species evenness
-#Reference: Kim et al. 2017, 
-
-#Amy Willis does not recommend rarefying prior to alpha diversity so we are going to use our original phyloseq object for now
-#Source: https://www.frontiersin.org/articles/10.3389/fmicb.2019.02407/full 
-
-#Alpha diversity of un-rarefied 18S ASVs ####
+#This script only produces the 18S figures. The final versions of the figures were assembled in Affinity designer.
 
 #An easy way to estimate richness across multiple diversity indices in phyloseq
 #Add latitude and water temperature data from your metadata, this will allow you to do a regression analysis later on
@@ -124,8 +79,7 @@ richness_18S <- estimate_richness(ps_18S, measures = c("ACE", "Shannon", "InvSim
   cbind(sample_data(ps_18S)[,"water_temp"])
 print(richness_18S)
 
-
-#PLOT 1: Diversity measures against latitude ####
+#FIGURE 1: Diversity measures against latitude ####
 #1.1 ACE
 #Ace plots give a standard error range as part of the calculation
 latitude_ACE_18S <- plot_richness(ps_18S, x="latitude", color = "ave_ann_temp", measures=c("ACE"), title = "ACE diversity index of 18S samples plotted by latitude") +  theme(axis.text.x = element_text(angle = 90), legend.title = element_blank()) + geom_point(size=8, alpha=0.8, aes(shape = factor(water_body))) + geom_smooth(method = "lm", alpha = 0.2, colour = "black")  # as the relationship looks linear we can use LM, the grey line indicates the 95% confidence interval
@@ -139,7 +93,7 @@ latitude_ACE_18S <- latitude_ACE_18S + scale_colour_continuous(high = "#EE6677",
 #It's looking like there is a relationship between the diversity indices and latitude. To statistically support this relationship, perform a linear regression in R to get the R2 and p values:
 lm = lm(richness_18S$ACE~richness_18S$latitude)
 summary(lm)
-#The output of this shows the relationship is highly statistically significant (Adjusted R-squared value: 0.3855, p value«<0.001
+#The output of this shows the relationship is highly statistically significant (Adjusted R-squared value: 0.3855, p valueÂ«<0.001
 
 latitude_ACE_18S <- latitude_ACE_18S + labs(subtitle = "Adjusted R-squared value: 0.3855, p value <0.001")
 latitude_ACE_18S#check you're happy
@@ -160,7 +114,7 @@ latitude_Shannon_18S <- latitude_Shannon_18S + scale_colour_continuous(high = "#
 #It's looking like there is a relationship between the diversity indices and latitude. To statistically support this relationship, perform a linear regression in R to get the R2 and p values:
 lm = lm(richness_18S$Shannon~richness_18S$latitude)
 summary(lm)
-#The output of this shows the relationship is highly statistically significant (Adjusted R-squared value: 0.1726, p value«<0.001
+#The output of this shows the relationship is highly statistically significant (Adjusted R-squared value: 0.1726, p valueÂ«<0.001
 
 latitude_Shannon_18S <- latitude_Shannon_18S + labs(subtitle = "Adjusted R-squared value: 0.1726, p value <0.001")
 latitude_Shannon_18S + font_size + theme(axis.text.x = element_text(angle = 270, vjust = 0.5, hjust=1))
@@ -180,7 +134,7 @@ latitude_InvSimpson_18S <- latitude_InvSimpson_18S + scale_colour_continuous(hig
 #It's looking like there is a relationship between the diversity indices and latitude. To statistically support this relationship, perform a linear regression in R to get the R2 and p values:
 lm = lm(richness_18S$InvSimpson~richness_18S$latitude)
 summary(lm)
-#The output of this shows the relationship is highly statistically significant (Adjusted R-squared value: 0.05275, p value«<0.01567
+#The output of this shows the relationship is highly statistically significant (Adjusted R-squared value: 0.05275, p valueÂ«<0.01567
 
 latitude_InvSimpson_18S <- latitude_InvSimpson_18S + labs(subtitle = "Adjusted R-squared value: 0.05275, p value = 0.0157")
 latitude_InvSimpson_18S + font_size + theme(axis.text.x = element_text(angle = 270, vjust = 0.5, hjust=1))
@@ -189,7 +143,7 @@ latitude_InvSimpson_18S + font_size + theme(axis.text.x = element_text(angle = 2
 ggsave("latitude_InvSimpson_18S.jpg", width = 297, height = 210, units = c("mm"))
 ggsave("latitude_InvSimpson_18S.pdf", width = 297, height = 210, units = c("mm"))
 
-#PLOT 2. WATER TEMPERATURE####
+#SUPPL FIG. 2. WATER TEMPERATURE####
 #Note Resolute Shore Pond does not have water temperature data
 #2.1 ACE
 #Ace plots give a standard error range as part of the calculation
@@ -251,50 +205,7 @@ water_temp_InvSimpson_18S + font_size + theme(axis.text.x = element_text(angle =
 ggsave("water_temp_InvSimpson_18S.jpg", width = 297, height = 210, units = c("mm"))
 ggsave("water_temp_InvSimpson_18S.pdf", width = 297, height = 210, units = c("mm"))
 
-#PLOT 3. Comparing alpha diversity variation within pond samples
-#This is the names of the samples ordered by latitude
-summed_order = c("KJ1","KJ2","KJ3","KJ4","KJ5","KJ6","KJ7","KJ8","UM1","UM2","UM3","UM4","UM5","UM6","UM7","UM8","CB1","CB2","CB3","CB4","CB5","CB6","CB7","CB8","BY1","BY2","RE1","RE2","WH","AP","MKIS","WHIS")
-
-ponds_ACE_18S <- plot_richness(ps_18S, x="new_pond", color ="region", shape = "water_body", measures=c("ACE"), title = "ACE diversity index of 18S samples grouped by sample sites")+
-  geom_point(size=8, alpha=0.8)+
-  theme(axis.text.x = element_text(angle = 90), legend.title = element_blank())  +
-  geom_boxplot(alpha=0.6)
-ponds_ACE_18S $layers
-ponds_ACE_18S $layers <- ponds_ACE_18S $layers[-1]
-ponds_ACE_18S <- ponds_ACE_18S + scale_x_discrete(limits=summed_order) + scale_color_manual(values = region_palette)
-ponds_ACE_18S + font_size + theme(axis.text.x = element_text(angle = 270, vjust = 0.5, hjust=1))
-
-#use ggsave to save to your wd as a pdf and jpeg
-ggsave("ponds_ACE_18S.jpg", width = 297, height = 210, units = c("mm"))
-ggsave("ponds_ACE_18S.pdf", width = 297, height = 210, units = c("mm"))
-
-ponds_Shannon_18S <- plot_richness(ps_18S, x="new_pond", color ="region", shape = "water_body", measures=c("Shannon"),  title = "Shannon diversity index of 18S samples grouped by sample sites")+
-  geom_point(size=8, alpha=0.8)+
-  theme(axis.text.x = element_text(angle = 90), legend.title = element_blank())  +
-  geom_boxplot(alpha=0.6)
-ponds_Shannon_18S $layers
-ponds_Shannon_18S $layers <- ponds_Shannon_18S $layers[-1]
-ponds_Shannon_18S <- ponds_Shannon_18S + scale_x_discrete(limits=summed_order) + scale_color_manual(values = region_palette)
-ponds_Shannon_18S + font_size + theme(axis.text.x = element_text(angle = 270, vjust = 0.5, hjust=1))
-
-#use ggsave to save to your wd as a pdf and jpeg
-ggsave("ponds_Shannon_18S.jpg", width = 297, height = 210, units = c("mm"))
-ggsave("ponds_Shannon_18S.pdf", width = 297, height = 210, units = c("mm"))
-
-ponds_InvSimpson_18S <- plot_richness(ps_18S, x="new_pond", color ="region", shape = "water_body", measures=c("InvSimpson"),  title = "Inverse Simpson diversity index of 18S samples diversity grouped by sample sites")+
-  geom_point(size=8, alpha=0.8)+
-  theme(axis.text.x = element_text(angle = 90), legend.title = element_blank())  +
-  geom_boxplot(alpha=0.6)
-ponds_InvSimpson_18S $layers
-ponds_InvSimpson_18S $layers <- ponds_InvSimpson_18S $layers[-1]
-ponds_InvSimpson_18S <- ponds_InvSimpson_18S + scale_x_discrete(limits=summed_order) + scale_color_manual(values = region_palette)
-ponds_InvSimpson_18S + font_size + theme(axis.text.x = element_text(angle = 270, vjust = 0.5, hjust=1))
-
-#use ggsave to save to your wd as a pdf and jpeg
-ggsave("ponds_InvSimpson_18S.jpg", width = 297, height = 210, units = c("mm"))
-ggsave("ponds_InvSimpson_18S.pdf", width = 297, height = 210, units = c("mm"))
-
-#PLOT 4. Alpha diversity by regions
+#FIGURE 2. Alpha diversity by regions
 region_ACE_18S <- plot_richness(ps_18S, x="region", color ="region", measures=c("ACE"), title = "ACE diversity index of 18S samples grouped by region")+
   geom_jitter(size=8, alpha=0.8, aes(shape  = water_body), width = 0.2)+
   theme(axis.text.x = element_text(angle = 90), legend.title = element_blank())
@@ -342,8 +253,7 @@ richness_18S <- richness_18S %>% cbind(sample_data(ps_18S)[,"region"])%>% cbind(
 richness_18S
 
 #Save this output as a .txt file
-write.table(richness_18S, file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/final_results/richness_estimates_18S.txt")
-
+write.table(richness_18S, file = "~/richness_estimates_18S.txt")
 
 #Check skew of data (normality)
 hist(richness_18S$ACE)
@@ -447,4 +357,5 @@ InvSimpson_18S_wilcoxon_summary
 #6_ellesmere_island 0.00433    -                 
 #7_ice_shelves      0.05195    0.12554 
 
+####END OF SCRIPT####
 
