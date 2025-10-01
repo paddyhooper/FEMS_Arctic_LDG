@@ -1,8 +1,6 @@
-#Mantel Test in R
+#Mantel Tests for 16S and 18S rRNA gene datasets
 #Author: Patrick M. Hooper
 #Date Created: 16/08/22
-#Date Modified: 06/09/22
-
 
 #REFERENCE:
 #https://jkzorz.github.io/2019/07/08/mantel-test.html
@@ -28,8 +26,8 @@ library(microbiome); packageVersion("microbiome")
 library(geosphere); packageVersion("geosphere")
 
 #STEP 2. LOAD YOUR AVERAGED PHYLOSEQ OBJECTS FROM THE ORDINATION SCRIPT####
-ps_16S_ave <- readRDS(file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/ps_16S_ave")
-ps_func_18S_ave <- readRDS(file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/ps_func_18S_ave")
+ps_16S_ave <- readRDS(file = "~/ps_16S_ave")
+ps_func_18S_ave <- readRDS(file = "~/ps_func_18S_ave")
 
 #STEP 3. RELATIVE ABUNDANCE TRANSFORM THE TWO PHYLOSEQ OBJECTS TO MATCH THE ORDINATION STEPS####
 ps_16S_ave_RA = transform_sample_counts(ps_16S_ave, function(x) x / sum(x))
@@ -51,13 +49,13 @@ rownames(count_18S_ra) # check your samples are rows
 
 #STEP 6. LOAD YOUR 16S AND 18S METADATA TABLE####
 #Load the 16S average metadata table
-meta_average_16S <- read.table(file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/GLOM_V4_16S_METADATA_FORMATTED_AVERAGE_UPDATE_17_8_22.txt")
+meta_average_16S <- read.table(file = "~/GLOM_V4_16S_METADATA_FORMATTED_AVERAGE_UPDATE_17_8_22.txt")
 nrow(meta_average_16S)# 32 samples
 colnames(meta_average_16S)
 #Subset the metadata into smaller dataframes with the necessary information
 
 #Load the 18S average metadata table
-meta_average_18S <- read.table(file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/GLOM_V9_18S_METADATA_FORMATTED_UPDATE_AVERAGE_17_8_22.txt")
+meta_average_18S <- read.table(file = "~/GLOM_V9_18S_METADATA_FORMATTED_UPDATE_AVERAGE_17_8_22.txt")
 nrow(meta_average_18S)# 32 samples
 colnames(meta_average_18S)
 
@@ -221,36 +219,6 @@ abund_geo_16S
 
 #THERE IS A STRONG SIGNIFICANT CORRELATION BETWEEN DISTANCE AND  bray-curtis dissimilarity  ON THE INDIVIDUAL SAMPLES
 
-#MANTEL TEST VISUALS - 16S####
-#Convert the distance matrices into vectors
-v_dist.abund_16S <- as.vector(dist.abund_16S)
-v_dist.env_16S <- as.vector(dist.env_16S)
-v_dist.temp_16S <- as.vector(dist.temp_16S)
-v_dist.air.temp_16S <- as.vector(dist.air.temp_16S)
-v_dist.pH_16S <- as.vector(dist.pH_16S)
-v_dist.cond_16S <- as.vector(dist.cond_16S)
-v_dist.geo_16S <- as.vector(dist.geo_16S)
-
-#combine them into a dataframe with vectorized distance matrices
-mat_16S <- data.frame(v_dist.abund_16S, v_dist.env_16S, v_dist.temp_16S, v_dist.air.temp_16S, v_dist.pH_16S, v_dist.cond_16S, v_dist.geo_16S)
-head(mat_16S)
-
-#Let's plot this data!
-#Abundance vs distance with colour coded air temperature 
-ggplot(mat_16S, aes(y = v_dist.abund_16S, x = v_dist.geo_16S/1000)) + 
-  geom_point(size = 4, alpha = 0.75, colour = "black",shape = 21, aes(fill = v_dist.air.temp_16S)) + 
-  geom_smooth(method = "lm", colour = "black", alpha = 0.2) + 
-  labs(x = "Physical Separation (km)", y = "Bray-Curtis Dissimilarity", fill = "Difference in Temperature (C)") + 
-  theme( axis.text.x = element_text(face = "bold",colour = "black", size = 12), 
-         axis.text.y = element_text(face = "bold", size = 11, colour = "black"), 
-         axis.title= element_text(face = "bold", size = 14, colour = "black"), 
-         panel.background = element_blank(), 
-         panel.border = element_rect(fill = NA, colour = "black"),
-         legend.position = "top",
-         legend.text = element_text(size = 10, face = "bold"),
-         legend.title = element_text(size = 11, face = "bold")) + scale_fill_continuous(high = "#EE6677", low = "#4477AA")
-
-
 #Mantel test on 18S relative abundance data####
 #Firstly, we need a table of abundance data
 #Utilise the average phyloseq object we made in our ordination plot
@@ -354,7 +322,6 @@ abund_air_temp_18S
 abund_sample_year_temp_18S <- mantel(dist.abund_18S, dist.sample.year.temp_18S, method = "spearman", permutations = 9999, na.rm = TRUE)
 abund_sample_year_temp_18S 
 
-
 #Mantel statistic r: 0.1525 
 #Significance: 0.0102 
 
@@ -410,36 +377,4 @@ abund_geo_18S
 #Number of permutations: 9999
 
 #Significant association between geographic distance and bray-curtis dissimilarity 
-
-#MANTEL TEST VISUALS - 18S####
-#Convert the distance matrices into vectors
-v_dist.abund_18S <- as.vector(dist.abund_18S)
-v_dist.env_18S <- as.vector(dist.env_18S)
-v_dist.temp_18S <- as.vector(dist.temp_18S)
-v_dist.air.temp_18S <- as.vector(dist.air.temp_18S)
-v_dist.pH_18S <- as.vector(dist.pH_18S)
-v_dist.cond_18S <- as.vector(dist.cond_18S)
-v_dist.geo_18S <- as.vector(dist.geo_18S)
-
-#combine them into a dataframe with vectorized distance matrices
-mat_18S <- data.frame(v_dist.abund_18S, v_dist.env_18S, v_dist.temp_18S, v_dist.air.temp_18S, v_dist.pH_18S, v_dist.cond_18S, v_dist.geo_18S)
-head(mat_18S)
-
-#Let's plot this data!
-#Abundance vs distance with colour coded air temperature 
-ggplot(mat_18S, aes(y = v_dist.abund_18S, x = v_dist.geo_18S/1000)) + 
-  geom_point(size = 4, alpha = 0.75, colour = "black",shape = 21, aes(fill = v_dist.air.temp_18S)) + 
-  geom_smooth(method = "lm", colour = "black", alpha = 0.2) + 
-  labs(x = "Physical Separation (km)", y = "Bray-Curtis Dissimilarity", fill = "Difference in Temperature (C)") + 
-  theme( axis.text.x = element_text(face = "bold",colour = "black", size = 12), 
-         axis.text.y = element_text(face = "bold", size = 11, colour = "black"), 
-         axis.title= element_text(face = "bold", size = 14, colour = "black"), 
-         panel.background = element_blank(), 
-         panel.border = element_rect(fill = NA, colour = "black"),
-         legend.position = "top",
-         legend.text = element_text(size = 10, face = "bold"),
-         legend.title = element_text(size = 11, face = "bold")) + scale_fill_continuous(high = "#EE6677", low = "#4477AA")
-
-
-
 
