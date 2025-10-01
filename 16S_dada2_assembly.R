@@ -547,6 +547,7 @@ write.table(ps_meta, file = "FILT_ps_metadata_16S.txt", sep = "\t", quote=F, col
 
 #This filtered phyloseq object was used in the DECIPHER script in this repository to create the phylogenetic tree. This phylogenetic tree was then used for phylogeny-based ASV agglomeration using the Agglomeration script also in this repository. The final agglomerated phyloseq object was used for all downstream analysis.
 
-#END OF SCRIPT####
+####END OF SCRIPT####
+
 
 
