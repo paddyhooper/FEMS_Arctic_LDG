@@ -496,4 +496,4 @@ write.table(meta, "ps_metadata_18S_no_met_plants.txt", sep = "\t", quote=, col.n
 ps
 saveRDS(ps, file = "~/FINAL_ps_18S_no_met_plants")
 
-#END OF SCRIPT####
+####END OF SCRIPT####
