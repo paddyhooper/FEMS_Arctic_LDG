@@ -44,7 +44,7 @@ nrow(meta_18S) #32
 #I made this in excel from the functional mothership to make sure that ASVIDs were all matching
 #No KJB17bii in this file
 #This needs to not have a column header on the ASVID column
-count_18S <- read.table("~/FINAL_ps_18S_asv_count_glom_0_01_FUNCTIONAL_AVERAGE_25_8.txt", header = TRUE) 
+count_18S <- read.table("~/18S_asv_count_average.txt", header = TRUE) 
 
 #I also had to change it to a matrix
 count_18S <- as.matrix(count_18S)
