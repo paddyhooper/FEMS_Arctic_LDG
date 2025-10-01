@@ -131,7 +131,7 @@ sample_names(OTU_18S_ave)
 
 #3. Add averaged metadata
 #No KJB17bii in this file
-meta_16S <- read.table("~/16S_metadata_average.txt") #NOTE THIS IS THE METADATA WITH THE READ COUNTS WITHOUT METAZOA AND PLANTS
+meta_16S <- read.table("~/16S_metadata_average.txt")
 head(meta_16S)
 rownames(meta_16S)
 nrow(meta_16S) #32
