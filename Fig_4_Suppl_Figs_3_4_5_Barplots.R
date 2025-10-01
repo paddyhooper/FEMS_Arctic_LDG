@@ -325,5 +325,5 @@ ggsave("parasite_plot.pdf", width = 315, height = 297, units = c("mm"))
 
 #I didn't make a plot for osmotrophic, plant_parasite, pathogens, or detritivores as they were all represented by one division, will be discussed instead. 
 
-##### END OF SCRIPT ####
+#### END OF SCRIPT ####
 
