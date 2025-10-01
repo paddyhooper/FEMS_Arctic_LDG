@@ -1,5 +1,5 @@
 #Mapping sampling regions in Canada
-#Author: Patrick M Hooper
+#Author: Patrick M. Hooper
 #Date created: 22/11/22
 
 #This script produces a map of the sampling locations for the latitudinal diversity gradient study
@@ -53,4 +53,4 @@ ggsave("total_sample_region.png", width = 210, height = 297, units = c("mm"))
 ggplot(data = world) +
   geom_sf() + annotation_scale(location = "bl", width_hint = 0.5) + coord_sf(xlim = c(-70, -90), ylim = c(50, 60), expand = FALSE)+ theme(panel.grid.major = element_line(color = gray(.5), linetype = "dashed", size = 0.5), panel.background = element_rect(fill = "aliceblue")) + xlab("Longitude") + ylab("Latitude") + ggtitle("Map of sample locations")+ geom_point(data = samps, aes(x = lon, y = lat), size = 5, shape = samps$shape, col = alpha(samps$col, 0.8)) + geom_text_repel(data = taiga_locs, aes(x = lon, y = lat, label = id))
 
-
+####End of script####
