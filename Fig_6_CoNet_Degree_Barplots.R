@@ -40,4 +40,4 @@ p_net_2_euks
 ggsave("net_2_euks_barplot.jpg", width = 210, height = 297, units = c("mm"))
 ggsave("net_2_euks_barplot.pdf", width = 210, height = 297, units = c("mm"))
 
-
+####End of script####
