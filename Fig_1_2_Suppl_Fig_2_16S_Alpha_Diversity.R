@@ -32,7 +32,7 @@ show_col(region_palette)
 
 #4. Load metadata table####
 #This metadata table includes the final version sample names####
-meta_16S <- read.table("C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/GLOM_V4_16S_METADATA_FORMATTED_UPDATE_17_8_22.txt")
+meta_16S <- read.table("~/16S_metadata_update.txt")
 
 #4. LOAD YOUR 16S PHYLOSEQ TABLE####
 ps_16S <- readRDS(file = "~/ps_16S")
