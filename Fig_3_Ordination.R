@@ -131,7 +131,7 @@ sample_names(OTU_18S_ave)
 
 #3. Add averaged metadata
 #No KJB17bii in this file
-meta_16S <- read.table("~/16S_metadata_average.txt")
+meta_16S <- read.table("~/16S_metadata_averaged.txt")
 head(meta_16S)
 rownames(meta_16S)
 nrow(meta_16S) #32
@@ -159,7 +159,7 @@ nrow(count_16S) #15250
 colSums(count_16S)
 
 #7. LOAD YOUR 16S ASV TAXA TABLE
-tax_16S <- read.table("~/FINAL_ps_16S_tax_no_KJ17bii.txt", header = TRUE)
+tax_16S <- read.table("~/16S_taxonomy_table.txt", header = TRUE)
 head(tax_16S)
 
 #use this function to add ASVIDS as rownames on the tax table
