@@ -1,0 +1,12 @@
+Tax_Group	Nodes	Degree	d_n	col
+Alphaproteobacteria	99	312	3.15	"#5BAFD7"
+Planctomycetota	82	290	3.54	"#AA3377"
+Bacteroidota	68	265	3.90	"#D75577"
+Chloroflexi	43	139	3.23	"#718DB0"
+Cyanobacteria	32	105	3.28	"#CCBB44"
+Actinobacteriota	32	68	2.13	"#9BAB3E"
+Verrucomicrobiota	31	90	2.90	"#DAA258"
+Gammaproteobacteria	29	87	3.00	"#5BAFD7"
+Myxococcota	16	75	4.69	"#066666"
+Acidobacteriota	16	40	2.50	"#252525"
+Other	34	93	2.74	"#BBBBBB"

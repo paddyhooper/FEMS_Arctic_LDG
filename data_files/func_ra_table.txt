@@ -1,0 +1,89 @@
+Region	Nutrition	Value					
+Kuujjuarapik	phototrophic	20.98					
+Kuujjuarapik	bacterivore	18.37					
+Kuujjuarapik	eukaryvore	6.06					
+Kuujjuarapik	omnivore	7.73					
+Kuujjuarapik	animal_parasite	4.22					
+Kuujjuarapik	detritivore	0.03					
+Kuujjuarapik	mixotrophic	4.62					
+Kuujjuarapik	NA	32.10					
+Kuujjuarapik	osmotrophic	0.27					
+Kuujjuarapik	pathogen	5.02					
+Kuujjuarapik	plant_parasite	0.60					
+Umiujaq	phototrophic	21.58					
+Umiujaq	bacterivore	19.47					
+Umiujaq	eukaryvore	7.30					
+Umiujaq	omnivore	7.47					
+Umiujaq	animal_parasite	4.91					
+Umiujaq	detritivore	0.14					
+Umiujaq	mixotrophic	4.57					
+Umiujaq	NA	30.21					
+Umiujaq	osmotrophic	0.51					
+Umiujaq	pathogen	3.20					
+Umiujaq	plant_parasite	0.65					
+Cambridge_Bay	phototrophic	22.60					
+Cambridge_Bay	bacterivore	16.99					
+Cambridge_Bay	eukaryvore	8.01					
+Cambridge_Bay	omnivore	7.95					
+Cambridge_Bay	animal_parasite	3.56					
+Cambridge_Bay	detritivore	0.00					
+Cambridge_Bay	mixotrophic	4.79					
+Cambridge_Bay	NA	30.55					
+Cambridge_Bay	osmotrophic	0.07					
+Cambridge_Bay	pathogen	5.21					
+Cambridge_Bay	plant_parasite	0.27					
+Bylot_Island	phototrophic	24.98					
+Bylot_Island	bacterivore	17.77					
+Bylot_Island	eukaryvore	6.44					
+Bylot_Island	omnivore	7.01					
+Bylot_Island	animal_parasite	3.27					
+Bylot_Island	detritivore	0.10					
+Bylot_Island	mixotrophic	8.45					
+Bylot_Island	NA	27.67					
+Bylot_Island	osmotrophic	0.86					
+Bylot_Island	pathogen	2.98					
+Bylot_Island	plant_parasite	0.48					
+Resolute	phototrophic	16.67					
+Resolute	bacterivore	21.19					
+Resolute	eukaryvore	7.82					
+Resolute	omnivore	17.49					
+Resolute	animal_parasite	2.67					
+Resolute	detritivore	0.41					
+Resolute	mixotrophic	1.23					
+Resolute	NA	28.40					
+Resolute	osmotrophic	0.21					
+Resolute	pathogen	3.70					
+Resolute	plant_parasite	0.21					
+Ellesmere_Island	phototrophic	18.58					
+Ellesmere_Island	bacterivore	27.70					
+Ellesmere_Island	eukaryvore	5.07					
+Ellesmere_Island	omnivore	16.55					
+Ellesmere_Island	animal_parasite	2.70					
+Ellesmere_Island	detritivore	0.00					
+Ellesmere_Island	mixotrophic	4.73					
+Ellesmere_Island	NA	20.27					
+Ellesmere_Island	osmotrophic	0.00					
+Ellesmere_Island	pathogen	4.05					
+Ellesmere_Island	plant_parasite	0.34					
+Ice_Shelves	phototrophic	16.23					
+Ice_Shelves	bacterivore	29.57					
+Ice_Shelves	eukaryvore	8.70					
+Ice_Shelves	omnivore	14.78					
+Ice_Shelves	animal_parasite	1.45					
+Ice_Shelves	detritivore	0.00					
+Ice_Shelves	mixotrophic	1.45					
+Ice_Shelves	NA	25.51					
+Ice_Shelves	osmotrophic	0.00					
+Ice_Shelves	pathogen	1.74					
+Ice_Shelves	plant_parasite	0.58					
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							

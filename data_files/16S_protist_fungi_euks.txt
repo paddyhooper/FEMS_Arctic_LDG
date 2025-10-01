@@ -1,0 +1,9 @@
+Division	Node	Degrees	d_n	col
+Conosa	1	3	3.00	"#66CCEE"
+Ciliophora	3	6	2.00	"#4477AA"
+Discoba	1	2	2.00	"#C14477"
+Lobosa	6	10	1.67	"#939EC5"
+Ocrophyta	4	6	1.50	"#679A39"
+Chlorophyta	7	7	1.00	"#228833"
+Fungi	4	4	1.00	"#A56E9D"
+Cercozoa	2	2	1.00	"#EE6677"
