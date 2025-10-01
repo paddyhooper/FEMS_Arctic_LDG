@@ -5,9 +5,6 @@
 #Background
 #CoNet requires low abundance and prevalence ASVs to be removed from datatables, this script extracts a filtered abundance table from my 16S and 18S phyloseq objects
 
-#SetWD
-setwd("C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/Co_Net/")
-
 #Load packages
 library(phyloseq); packageVersion("phyloseq")
 library(tidyverse); packageVersion("tidyverse")
@@ -23,12 +20,12 @@ library(tibble); packageVersion("tibble")
 #The data is not currently relative abundance transformed
 
 #Load 16S phyloseq####
-ps_16S <- readRDS(file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/ps_16S_ave")
+ps_16S <- readRDS(file = "~/ps_16S_ave")
 ps_16S #15250 taxa
 sample_names(ps_16S)
 
 #Load 18S phyloseq####
-ps_18S <- readRDS(file = "C:/Users/pmh36/OneDrive - Natural History Museum/R/R_data/dada2/saveRDS/ps_func_18S_ave")
+ps_18S <- readRDS(file = "~/ps_func_18S_ave")
 ps_18S #9354 taxa
 sample_names(ps_18S)
 
@@ -49,10 +46,10 @@ ps_18S_ra <- transform_sample_counts(ps_18S, function(x){x / sum(x)})
 ps_18S_ra
 
 #DATASET 1: 18S ONLY
-#The first dataset we need is of the total 18S dataset including the metazoa and plant groups included
+#The total 18S dataset including the metazoa and plant groups included
 
 #1. Abundance Filtering
-#This is stolen from the phyloseq pre-processing pages, this function keeps only those ASVs that have a mean abundance of greater than 1x10^-5 = 0.001% mean abundance
+#This is from the phyloseq pre-processing pages, this function keeps only those ASVs that have a mean abundance of greater than 1x10^-5 = 0.001% mean abundance
 ps_18S_ra_a <- filter_taxa(ps_18S_ra, function(x) mean(x) > 1e-5, TRUE)
 ps_18S_ra_a #4054 taxa
 
@@ -139,22 +136,6 @@ ps_16S_ra_a_p_genus #289 taxa
 net_16S_ASVs <- ps_16S_ra_a_p
 net_16S_ASVs_genus <-ps_16S_ra_a_p_genus
 
-#Let us summarize what we've got
-#All samples have undergone the same prevalence and abundance filtering
-
-#Total 18S
-net_18S_ASVs #539 ASVs
-#Total 18S, agglomerated by genus
-net_18S_ASVs_genus #183 ASVs
-#Protist and Fungi ASVs
-net_protist_fungi_ASVs #433 ASVs
-#Protist and Fungi ASVs, agglomerated by genus
-net_protist_fungi_ASVs_genus #167 ASVs
-#Total 16S
-net_16S_ASVs #1859 ASVs
-#Total 16S, agglomerated by genus
-net_16S_ASVs_genus #289 ASVs
-
 #Now we need to export this data! 
 #CoNet requires a joined ASV and taxonomy table, we have to make a few edits to it
 
@@ -206,15 +187,11 @@ net_16S_genus_TAX <- net_16S_genus_TAX %>% rownames_to_column(var = "ASVID")
 net_16S_genus_input_table <- merge(net_16S_genus_count, net_16S_genus_TAX, by.x = c("ASVID"), by.y = c("ASVID"))
 write.table(net_16S_genus_input_table, "net_16S_genus_input_table.tsv", sep = "\t", quote=, col.names=NA)
 
-#These are all saved into C:\Users\pmh36\OneDrive - Natural History Museum\R\R_data\Co_Net
-#The first column (containing an ascending numerical list) had to be removed from the joined ASv and tax tables for both the 16S and 18S in Excel
-#For the second option,  the two tables need to be combined into one table as Loic did in his approach
-#I also changed the taxonomic annotation so it was one column seperated by ; using the concat feature
-
-#Things I changed
-#1. The best hit approach changes the taxa name in the 18S to match the 16S which is fine but just to make a note of the fact all ASVs are now under the same column names: Domain, Phylum, Class, Order, Family, Genus, Species
-#2. I had to delete the two lines 
-#3. Remove the first row with the arbitrary numbers
+##Format for CoNet in Excel##
+#There was a lot of changes made to the Excel to make it formatted for CoNet, these are provided below. However, the edited versions are also provided in the 'data_files' folders.
+                           
+#The first column (containing an ascending numerical list) had to be removed from the joined ASV and tax tables for both the 16S and 18S in Excel
+#I also changed the taxonomic annotation so it was one column seperated by ";"s, using the concat rows feature in Excel
 #4. Change the ASVID column header on column 1 to #OTUID
 #5. Change the colons introduced by Best HIT to the ASVIDs column 1 to _ using find and replace
 #6. Change the 'Domain' header to ''taxonomy' and remove all other taxonomic headings
@@ -225,23 +202,7 @@ write.table(net_16S_genus_input_table, "net_16S_genus_input_table.tsv", sep = "\
 #I did this with concatenate in excel by making a column for each prefix and then merging all the rows
 #e.g. k__	Bacteria	p__	Firmicutes	c__	Clostridia	o__	Clostridiales	f__	Clostridiaceae	g__	Clostridium_sensu_stricto_13	s__	g__Clostridium_sensu_stricto_13
 #Then concatenate it to make one column with all this information in, then you're done!
-#Also remove any irregular characters like brackets, sometimes things have these, e.g. SAR3324_clade(Marine_group_B), what's that about...
+#Also remove any irregular characters like brackets, sometimes things have these, e.g. SAR3324_clade(Marine_group_B)
 #SAVED THE FINAL VERSIONS OF THIS IN THE NETWORK PAGE AS AN EXCEL AND A TAB-DELIMITED FILE
 
-
-#Saved for later####
-# I wanted to make a graph of prevalence (number of samples containing an ASV against abundance overall)
-#Let's make a table of our ASV abundance
-ps_p_f_ra_filt_prev_melt = psmelt(ps_p_f_ra_filt_prev)
-abundance = as_data_frame(ps_p_f_ra_filt_prev_melt[,c("OTU","Abundance", "Sample")])
-rownames(abundance) <- abundance[,1]
-abundance #this has a column of ASVIDs but that's fine as it also has the abundance of our ASVs and their samples
-
-#we can see we have lots of low abundance things and some high abundance things
-ggplot(abundance, aes(x = Sample, y = Abundance)) + geom_point()
-
-
-ps_p_f_ra_filt_prev_melt
-
-
-#Let's make a table of prevalence data, i.e. how many times an ASV is in a sample
+####End of Script####
