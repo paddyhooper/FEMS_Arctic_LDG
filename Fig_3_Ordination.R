@@ -35,7 +35,7 @@ show_col(colour_palette)
 
 #this table includes pond data to group the samples and the new sample IDs for the plots
 #No KJB17bii in this file
-meta_18S <- read.table("~/GLOM_V9_18S_METADATA_FORMATTED_UPDATE_AVERAGE_17_8_22.txt") #NOTE THIS IS THE METADATA WITH THE READ COUNTS WITHOUT METAZOA AND PLANTS
+meta_18S <- read.table("~/18S_metadata_averaged.txt") #NOTE THIS IS THE METADATA WITH THE READ COUNTS WITHOUT METAZOA AND PLANTS
 meta_18S
 rownames(meta_18S)
 nrow(meta_18S) #32
