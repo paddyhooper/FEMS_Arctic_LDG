@@ -39,7 +39,7 @@ show_col(region_palette)
 #4. Load metadata table####
 #This metadata table includes the final version sample names####
 #This metadata contains information on all samples except the surplus KJ17bii
-meta_18S <- read.table("~/GLOM_V9_18S_METADATA_FORMATTED_UPDATE_17_8_22.txt")
+meta_18S <- read.table("~/18S_metadata_update.txt")
 
 #5. Load phyloseq objects####
 #4. LOAD YOUR FINAL 18S PHYLOSEQ TABLE WITHOUT METAZOA OR PLANTS####
