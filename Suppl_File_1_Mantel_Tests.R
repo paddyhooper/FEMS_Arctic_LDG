@@ -49,13 +49,13 @@ rownames(count_18S_ra) # check your samples are rows
 
 #STEP 6. LOAD YOUR 16S AND 18S METADATA TABLE####
 #Load the 16S average metadata table
-meta_average_16S <- read.table(file = "~/GLOM_V4_16S_METADATA_FORMATTED_AVERAGE_UPDATE_17_8_22.txt")
+meta_average_16S <- read.table(file = "~/16S_metadata_averaged.txt")
 nrow(meta_average_16S)# 32 samples
 colnames(meta_average_16S)
 #Subset the metadata into smaller dataframes with the necessary information
 
 #Load the 18S average metadata table
-meta_average_18S <- read.table(file = "~/GLOM_V9_18S_METADATA_FORMATTED_UPDATE_AVERAGE_17_8_22.txt")
+meta_average_18S <- read.table(file = "~/18S_metadata_averaged.txt")
 nrow(meta_average_18S)# 32 samples
 colnames(meta_average_18S)
 
@@ -377,4 +377,6 @@ abund_geo_18S
 #Number of permutations: 9999
 
 #Significant association between geographic distance and bray-curtis dissimilarity 
+
+####End of script####
 
