@@ -68,7 +68,7 @@ colSums(count_18S)
 #No KJB17bii in this file
 
 #Load the functional taxonomy table for the 18S data
-func_tax_18S <- read.table("~/18S_functional_taxonomy_table_08_12_22.txt", header = TRUE)
+func_tax_18S <- read.table("~/18S_functional_taxonomy_table.txt", header = TRUE)
 head(func_tax_18S)
 
 #use this function to add ASVIDS as rownames on the tax table
