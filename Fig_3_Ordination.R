@@ -140,7 +140,7 @@ nrow(meta_16S) #32
 #I made this in excel from the functional mothership to make sure that ASVIDs were all matching
 #No KJB17bii in this file
 #This needs to not have a column header on the ASVID column
-count_16S <- read.table("~/FINAL_ps_16S_count_glom_0_01_AVERAGE.txt", header = TRUE) 
+count_16S <- read.table("~/16S_asv_count_average.txt", header = TRUE) 
 
 #I also had to change it to a matrix
 count_16S <- as.matrix(count_16S)
